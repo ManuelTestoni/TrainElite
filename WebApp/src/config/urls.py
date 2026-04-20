@@ -31,4 +31,15 @@ urlpatterns = [
     path('allenamenti/', TemplateView.as_view(template_name='pages/allenamenti/list.html'), name='allenamenti_list'),
     path('allenamenti/crea/', TemplateView.as_view(template_name='pages/allenamenti/create.html'), name='allenamenti_create'),
     path('allenamenti/dettaglio/', TemplateView.as_view(template_name='pages/allenamenti/detail.html'), name='allenamenti_detail'),
+    
+    # Agenda
+    path('agenda/', TemplateView.as_view(template_name='pages/agenda/dashboard.html'), name='agenda_dashboard'),
+    path('agenda/lista/', TemplateView.as_view(template_name='pages/agenda/list.html'), name='agenda_list'),
+    path('agenda/dettaglio/', TemplateView.as_view(template_name='pages/agenda/detail.html'), name='agenda_detail'),
+    
+    # Abbonamenti
+    path('abbonamenti/', TemplateView.as_view(template_name='pages/abbonamenti/dashboard.html'), name='abbonamenti_dashboard'),
+    path('abbonamenti/dettaglio/', TemplateView.as_view(template_name='pages/abbonamenti/detail.html'), name='abbonamenti_detail'),
+    path('abbonamenti/checkout/', TemplateView.as_view(template_name='pages/abbonamenti/checkout.html'), name='abbonamenti_checkout'),
+    path('abbonamenti/checkout/success/', TemplateView.as_view(template_name='pages/abbonamenti/checkout_success.html'), name='abbonamenti_checkout_success'),
 ]
