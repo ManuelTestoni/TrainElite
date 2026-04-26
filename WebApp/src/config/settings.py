@@ -37,6 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # App di Dominio
+    'domain.accounts',
+    'domain.coaching',
+    'domain.workouts',
+    'domain.nutrition',
+    'domain.checks',
+    'domain.calendar',
+    'domain.billing',
 ]
 
 MIDDLEWARE = [
