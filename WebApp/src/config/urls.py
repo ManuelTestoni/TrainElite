@@ -17,10 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
+from . import views
+from . import views_workouts
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', TemplateView.as_view(template_name='pages/dashboard.html'), name='dashboard'),
+    path('', views.dashboard_view, name='dashboard'),
     
     # Nutrizione
     path('nutrizione/piani/', TemplateView.as_view(template_name='pages/nutrizione/piani_list.html'), name='nutrizione_piani'),
@@ -28,8 +30,11 @@ urlpatterns = [
     path('nutrizione/integratori/', TemplateView.as_view(template_name='pages/nutrizione/integratori_list.html'), name='nutrizione_integratori'),
     
     # Allenamenti
-    path('allenamenti/', TemplateView.as_view(template_name='pages/allenamenti/list.html'), name='allenamenti_list'),
-    path('allenamenti/crea/', TemplateView.as_view(template_name='pages/allenamenti/create.html'), name='allenamenti_create'),
+    path('allenamenti/', views_workouts.allenamenti_list_view, name='allenamenti_list'),
+    path('allenamenti/crea/', views_workouts.allenamenti_create_view, name='allenamenti_create'),
+    path('allenamenti/<int:assignment_id>/modifica/', views_workouts.allenamenti_edit_view, name='allenamenti_edit'),
+    path('api/clients/search/', views_workouts.api_search_clients, name='api_search_clients'),
+    path('api/exercises/search/', views_workouts.api_search_exercises, name='api_search_exercises'),
     path('allenamenti/dettaglio/', TemplateView.as_view(template_name='pages/allenamenti/detail.html'), name='allenamenti_detail'),
     
     # Agenda

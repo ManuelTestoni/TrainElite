@@ -57,7 +57,31 @@ class Command(BaseCommand):
             }
         )
 
-        if created_coach_prof or created_client_prof:
+        # 3. Creazione Secondo Utente Cliente
+        client_user_2, created_client_user_2 = User.objects.get_or_create(
+            email='client2@trainelite.com',
+            defaults={
+                'password_hash': 'hashed_password_789',
+                'role': 'CLIENT',
+                'is_verified': True
+            }
+        )
+
+        client_profile_2, created_client_prof_2 = ClientProfile.objects.get_or_create(
+            user=client_user_2,
+            defaults={
+                'first_name': 'Fre',
+                'last_name': 'Amorelli',
+                'phone': '+39 333 7654321',
+                'birth_date': date(1995, 8, 10),
+                'height_cm': 180,
+                'activity_level': 'Sedentario',
+                'primary_goal': 'DISTURBI GRAVI ALIMENTARI',
+                'client_status': 'ACTIVE'
+            }
+        )
+
+        if created_coach_prof or created_client_prof or created_client_prof_2:
             self.stdout.write(self.style.SUCCESS(f'Creato con successo! 1 Coach ({coach_profile.first_name}) e 1 Cliente ({client_profile.first_name}).'))
         else:
             self.stdout.write(self.style.WARNING('I dati di test esistono già nel database.'))
