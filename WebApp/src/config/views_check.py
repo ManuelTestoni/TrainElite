@@ -2,20 +2,40 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
 from django.core.files.storage import FileSystemStorage
-from domain.accounts.models import CoachProfile, ClientProfile
 from domain.checks.models import QuestionnaireTemplate, QuestionnaireResponse, ProgressPhoto
 import json
 
+from .session_utils import get_session_user, get_session_coach, get_session_client, get_active_relationship
+
+
 def check_create_view(request):
-    if request.method == 'GET':
-        return render(request, 'pages/check/create.html')
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
+    if user.role == 'CLIENT':
+        client = get_session_client(request)
+        relationship = get_active_relationship(client)
+        context = {
+            'has_coach': relationship is not None,
+            'client': client,
+            'coach': relationship.coach if relationship else None,
+        }
+        if request.method == 'GET':
+            return render(request, 'pages/check/create.html', context)
+        if not relationship:
+            return redirect('check_coach_directory')
+    else:
+        context = {}
+        if request.method == 'GET':
+            return render(request, 'pages/check/create.html', context)
         
-    elif request.method == 'POST':
-        # Default mock objects
-        coach = CoachProfile.objects.first()
-        client = ClientProfile.objects.first()
+    if request.method == 'POST':
+        coach = get_session_coach(request)
+        client = get_session_client(request)
+        if not coach or not client:
+            return redirect('login')
         
-        # Recupera o crea un template di base se non esiste
         template, _ = QuestionnaireTemplate.objects.get_or_create(
             coach=coach,
             title="Check Settimanale Standard",
@@ -26,7 +46,6 @@ def check_create_view(request):
             }
         )
         
-        # === SALVATAGGIO DATI BASE ===
         weight_kg = request.POST.get('weight_kg')
         if not weight_kg:
             weight_kg = None
@@ -36,7 +55,6 @@ def check_create_view(request):
             except ValueError:
                 weight_kg = None
             
-        # === JSON CIRCONFERENZE ===
         body_circumferences = {
             'shoulders': request.POST.get('circ_spalle', ''),
             'chest': request.POST.get('circ_petto', ''),
@@ -46,7 +64,6 @@ def check_create_view(request):
             'arm_right': request.POST.get('circ_braccio', '')
         }
         
-        # === JSON PLICHE ===
         skinfolds = {
             'chest': request.POST.get('pl_petto', ''),
             'abdomen': request.POST.get('pl_addome', ''),
@@ -54,7 +71,6 @@ def check_create_view(request):
             'tricep': request.POST.get('pl_tricipite', '')
         }
         
-        # === JSON RISPOSTE/FEEDBACK ===
         answers_json = {
             'mood': request.POST.get('ans_mood', ''),
             'diet_adherence': request.POST.get('ans_diet', ''),
@@ -65,7 +81,6 @@ def check_create_view(request):
         limitations = request.POST.get('limitations', '')
         notes = request.POST.get('notes', '')
         
-        # Crea la risposta
         response = QuestionnaireResponse.objects.create(
             questionnaire_template=template,
             client=client,
@@ -81,7 +96,6 @@ def check_create_view(request):
             notes=notes
         )
         
-        # === SALVATAGGIO FOTO PROGRESSI ===
         fs = FileSystemStorage()
         
         for key, photo_type in [('photo_front', 'Front'), ('photo_side', 'Side'), ('photo_back', 'Back')]:
@@ -99,16 +113,16 @@ def check_create_view(request):
                     captured_at=timezone.now()
                 )
                 
-        # Redirect the user securely using PRG pattern
         return redirect('check_dashboard')
 
+
 def check_dashboard_view(request):
-    coach = CoachProfile.objects.first()
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
     
-    # Prendi tutte le risposte associate ai clienti di questo coach, ordinandole per data piÃ¹ recente
     responses = QuestionnaireResponse.objects.filter(coach=coach).order_by('-submitted_at')
     
-    # Dividiamo i check tra quelli giÃ  revisionati o meno (mock, basatiullo stato. Se 'COMPLETED' Ã¨ da revisionare, 'REVIEWED' approvato)
     to_review = responses.filter(status='COMPLETED')
     reviewed = responses.filter(status='REVIEWED')
     

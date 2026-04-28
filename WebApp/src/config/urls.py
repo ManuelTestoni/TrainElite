@@ -21,13 +21,21 @@ from . import views
 from . import views_workouts
 from . import views_agenda
 from . import views_check
+from . import views_auth
+from . import views_client
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Auth
+    path('login/', views_auth.login_view, name='login'),
+    path('registrati/', views_auth.signup_view, name='signup'),
+    path('logout/', views_auth.logout_view, name='logout'),
+    
     path('', views.dashboard_view, name='dashboard'),
     
     # Nutrizione
-    path('nutrizione/piani/', TemplateView.as_view(template_name='pages/nutrizione/piani_list.html'), name='nutrizione_piani'),
+    path('nutrizione/piani/', views_client.nutrizione_piani_view, name='nutrizione_piani'),
     path('nutrizione/anamnesi/', TemplateView.as_view(template_name='pages/nutrizione/anamnesi_create.html'), name='nutrizione_anamnesi'),
     path('nutrizione/integratori/', TemplateView.as_view(template_name='pages/nutrizione/integratori_list.html'), name='nutrizione_integratori'),
     
@@ -46,15 +54,23 @@ urlpatterns = [
     path('agenda/dettaglio/', TemplateView.as_view(template_name='pages/agenda/detail.html'), name='agenda_detail'),
     
     # Abbonamenti
-    path('abbonamenti/', TemplateView.as_view(template_name='pages/abbonamenti/dashboard.html'), name='abbonamenti_dashboard'),
+    path('abbonamenti/', views_client.abbonamenti_dashboard_view, name='abbonamenti_dashboard'),
     path('abbonamenti/dettaglio/', TemplateView.as_view(template_name='pages/abbonamenti/detail.html'), name='abbonamenti_detail'),
     path('abbonamenti/checkout/', TemplateView.as_view(template_name='pages/abbonamenti/checkout.html'), name='abbonamenti_checkout'),
     path('abbonamenti/checkout/success/', TemplateView.as_view(template_name='pages/abbonamenti/checkout_success.html'), name='abbonamenti_checkout_success'),
+    path('abbonamenti/piano/crea/', views_client.subscription_plan_create_view, name='subscription_plan_create'),
+    path('abbonamenti/piano/<int:plan_id>/modifica/', views_client.subscription_plan_edit_view, name='subscription_plan_edit'),
+    path('api/abbonamenti/piano/<int:plan_id>/elimina/', views_client.subscription_plan_delete_view, name='subscription_plan_delete'),
+    path('abbonamenti/piano/<int:plan_id>/clienti/', views_client.subscription_plan_detail_view, name='subscription_plan_detail'),
     
     # Check Progressi
     path('check/', views_check.check_dashboard_view, name='check_dashboard'),
     path('check/dettaglio/', TemplateView.as_view(template_name='pages/check/detail.html'), name='check_detail'),
     path('check/crea/', views_check.check_create_view, name='check_create'),
+    path('check/trova-coach/', views_client.find_coach_list_view, name='check_coach_directory'),
+    path('api/check/trova-coach/', views_client.find_coach_api, name='check_coach_api'),
+    path('check/trova-coach/<int:coach_id>/', views_client.coach_detail_view, name='check_coach_detail'),
+    path('check/trova-coach/<int:coach_id>/connetti/', views_client.connect_coach_view, name='check_connect_coach'),
     
     # Impostazioni
     path('impostazioni/', TemplateView.as_view(template_name='pages/impostazioni/dashboard.html'), name='impostazioni_dashboard'),

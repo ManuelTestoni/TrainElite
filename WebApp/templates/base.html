@@ -50,6 +50,7 @@
                     <i class="ph ph-squares-four text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Dashboard</span>
                 </a>
+                {% if is_coach %}
                 <a href="#" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
                     <i class="ph ph-users text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Clienti</span>
@@ -58,7 +59,6 @@
                     <i class="ph ph-activity text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Allenamenti</span>
                 </a>
-                
                 <div x-data="{ expanded: false }" class="space-y-1">
                     <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all relative">
                         <div class="flex items-center">
@@ -73,7 +73,6 @@
                         <a href="{% url 'nutrizione_integratori' %}" class="block py-2 text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all">Integratori</a>
                     </div>
                 </div>
-
                 <a href="{% url 'agenda_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
                     <i class="ph ph-calendar-blank text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Agenda</span>
@@ -86,6 +85,35 @@
                     <i class="ph ph-credit-card text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Abbonamenti</span>
                 </a>
+                {% elif is_client %}
+                <a href="{% url 'allenamenti_list' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-activity text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">I Miei Allenamenti</span>
+                </a>
+                <a href="{% url 'nutrizione_piani' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-apple-logo text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">Nutrizione</span>
+                </a>
+                <a href="{% url 'agenda_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-calendar-blank text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">Agenda</span>
+                </a>
+                <a href="{% url 'check_create' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-check-square-offset text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">Check Progressi</span>
+                </a>
+                {% if has_coach %}
+                <a href="{% url 'abbonamenti_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-credit-card text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">Abbonamenti</span>
+                </a>
+                {% else %}
+                <a href="{% url 'check_coach_directory' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-magnifying-glass text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">Trova un Coach</span>
+                </a>
+                {% endif %}
+                {% endif %}
             </nav>
         </div>
 
@@ -95,12 +123,21 @@
                 <i class="ph ph-gear text-xl mr-3 text-slate-400"></i>
                 <span class="font-medium text-sm">Impostazioni</span>
             </a>
-            <div class="flex items-center px-3 py-2 mt-2">
-                <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Profile" class="w-9 h-9 rounded-full border border-slate-700">
-                <div class="ml-3">
-                    <p class="text-sm font-semibold text-white">Alessandro PT</p>
-                    <p class="text-xs text-slate-400 truncate">Pro Plan</p>
+            <div class="flex items-center justify-between px-3 py-2 mt-2 group">
+                <div class="flex items-center">
+                    <div class="w-9 h-9 rounded-full border border-slate-700 bg-slate-800 flex items-center justify-center text-slate-300 font-bold uppercase overflow-hidden">
+                        {{ display_name|slice:":1"|default:"U" }}
+                    </div>
+                    <div class="ml-3 overflow-hidden">
+                        <p class="text-sm font-semibold text-white truncate max-w-[100px]">
+                            {{ display_name|default:"Utente" }}
+                        </p>
+                        <p class="text-xs text-slate-400 truncate">{{ user_role|default:"Guest" }}</p>
+                    </div>
                 </div>
+                <a href="{% url 'logout' %}" class="text-slate-500 hover:text-red-400 p-1.5 rounded-md hover:bg-slate-800 transition-colors" title="Esci">
+                    <i class="ph-bold ph-sign-out text-lg"></i>
+                </a>
             </div>
         </div>
     </aside>
@@ -130,10 +167,17 @@
                     <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
                 </button>
                 <div class="w-px h-6 bg-slate-200 hidden sm:block"></div>
+                {% if is_coach %}
                 <button class="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center">
                     <i class="ph ph-plus-circle mr-2 text-lg"></i>
                     Nuovo Cliente
                 </button>
+                {% elif is_client and not has_coach %}
+                <a href="{% url 'check_coach_directory' %}" class="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center">
+                    <i class="ph ph-magnifying-glass mr-2 text-lg"></i>
+                    Trova Coach
+                </a>
+                {% endif %}
             </div>
         </header>
 

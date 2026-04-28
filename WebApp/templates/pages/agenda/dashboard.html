@@ -96,7 +96,7 @@
             <button @click="connectApple" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center shadow-sm">
                 <i class="ph ph-apple-logo mr-2 text-lg"></i> Sync Apple
             </button>
-            {% if coach %}
+            {% if can_manage_agenda %}
             <button @click="openCreateModal()" class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center">
                 <i class="ph ph-plus mr-2 text-lg"></i> Nuovo Appuntamento
             </button>

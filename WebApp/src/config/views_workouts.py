@@ -2,16 +2,21 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from domain.accounts.models import CoachProfile, ClientProfile
+
+from domain.accounts.models import ClientProfile
 from domain.workouts.models import Exercise, WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutAssignment
 
+from .session_utils import get_session_user, get_session_coach, get_session_client, get_active_relationship
+
+
 def allenamenti_create_view(request):
-    coach = CoachProfile.objects.first()
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
     
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            # Dati base
             title = data.get('title')
             description = data.get('description', '')
             goal = data.get('goal')
@@ -23,7 +28,6 @@ def allenamenti_create_view(request):
                 
             client = ClientProfile.objects.get(id=client_id, coaching_relationships_as_client__coach=coach)
             
-            # Crea WorkoutPlan
             plan = WorkoutPlan.objects.create(
                 coach=coach,
                 title=title,
@@ -32,7 +36,6 @@ def allenamenti_create_view(request):
                 level=level
             )
             
-            # Crea WorkoutAssignment
             WorkoutAssignment.objects.create(
                 workout_plan=plan,
                 client=client,
@@ -40,7 +43,6 @@ def allenamenti_create_view(request):
                 status=data.get('status', 'ACTIVE')
             )
             
-            # Crea Giorni ed Esercizi
             days_data = data.get('days', [])
             for day_idx, day_data in enumerate(days_data):
                 day = WorkoutDay.objects.create(
@@ -54,11 +56,8 @@ def allenamenti_create_view(request):
                     exercise_id = ex_data.get('exercise_id')
                     if exercise_id:
                         exercise = Exercise.objects.get(id=exercise_id)
-                        
-                        # Parsing sets/reps string
                         set_str = str(ex_data.get('sets', '3'))
                         rep_str = str(ex_data.get('reps', '10'))
-                        
                         set_count = int(set_str) if set_str.isdigit() else 3
                         
                         WorkoutExercise.objects.create(
@@ -78,8 +77,11 @@ def allenamenti_create_view(request):
             
     return render(request, 'pages/allenamenti/create.html', {'coach': coach})
 
+
 def api_search_clients(request):
-    coach = CoachProfile.objects.first()
+    coach = get_session_coach(request)
+    if not coach:
+        return JsonResponse([], safe=False)
     query = request.GET.get('q', '')
     
     clients = ClientProfile.objects.filter(
@@ -94,16 +96,52 @@ def api_search_clients(request):
     data = [{'id': c.id, 'name': f"{c.first_name} {c.last_name}"} for c in clients]
     return JsonResponse(data, safe=False)
 
+
 def api_search_exercises(request):
     query = request.GET.get('q', '')
     exercises = Exercise.objects.filter(name__icontains=query)[:20]
     data = [{'id': e.id, 'name': e.name, 'target': e.target_muscles or 'Generale'} for e in exercises]
     return JsonResponse(data, safe=False)
 
+
 def allenamenti_list_view(request):
-    coach = CoachProfile.objects.first()
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
     query = request.GET.get('q', '')
     filter_status = request.GET.get('status', '')
+
+    if user.role == 'CLIENT':
+        client = get_session_client(request)
+        relationship = get_active_relationship(client)
+        if not relationship:
+            return redirect('check_coach_directory')
+
+        assignments = WorkoutAssignment.objects.filter(
+            client=client,
+            coach=relationship.coach,
+        ).select_related('workout_plan', 'client')
+        
+        if query:
+            assignments = assignments.filter(workout_plan__title__icontains=query)
+        
+        if filter_status:
+            assignments = assignments.filter(status=filter_status)
+
+        return render(request, 'pages/allenamenti/client_list.html', {
+            'assignments': assignments.distinct(),
+            'query': query,
+            'filter_status': filter_status,
+            'is_client': True,
+            'client': client,
+            'coach': relationship.coach,
+            'has_coach': True,
+        })
+
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
 
     assignments = WorkoutAssignment.objects.filter(coach=coach).select_related('workout_plan', 'client')
     
@@ -118,11 +156,16 @@ def allenamenti_list_view(request):
     return render(request, 'pages/allenamenti/list.html', {
         'assignments': assignments.distinct(),
         'query': query,
-        'filter_status': filter_status
+        'filter_status': filter_status,
+        'is_coach': True,
+        'coach': coach,
     })
 
+
 def allenamenti_edit_view(request, assignment_id):
-    coach = CoachProfile.objects.first()
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
     assignment = WorkoutAssignment.objects.select_related('workout_plan', 'client').get(id=assignment_id, coach=coach)
     plan = assignment.workout_plan
     
@@ -138,7 +181,6 @@ def allenamenti_edit_view(request, assignment_id):
             assignment.status = data.get('status', 'ACTIVE')
             assignment.save()
             
-            # Simplified update: Delete existing days/exercises and recreate
             WorkoutDay.objects.filter(workout_plan=plan).delete()
             
             days_data = data.get('days', [])
@@ -171,7 +213,6 @@ def allenamenti_edit_view(request, assignment_id):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
             
-    # Serialize data for AlpineJS
     days_serialized = []
     for day in WorkoutDay.objects.filter(workout_plan=plan).order_by('day_order'):
         exercises_serialized = []

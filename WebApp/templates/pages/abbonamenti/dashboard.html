@@ -13,77 +13,64 @@
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestione Abbonamenti</h1>
             <p class="text-sm text-slate-500 mt-1">Gestisci i tuoi piani, monitora i pagamenti e lo stato dei clienti.</p>
         </div>
-        <div class="flex gap-3">
-            <button class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm flex items-center">
-                <i class="ph ph-link mr-2 text-lg"></i> Copia Link Negozio
-            </button>
-            <button class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center">
-                <i class="ph ph-plus mr-2 text-lg"></i> Crea Nuovo Piano
-            </button>
-        </div>
+        <a href="{% url 'subscription_plan_create' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center">
+            <i class="ph ph-plus mr-2 text-lg"></i> Crea Nuovo Piano
+        </a>
     </div>
 
     <!-- Main KPIs -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 flex-shrink-0">
+        <!-- Ricavi Totali -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Ricavi del Mese</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">€ 4.250</h3>
+                    <p class="text-sm font-medium text-slate-500">Ricavi Totali</p>
+                    <h3 class="text-2xl font-bold text-slate-900 mt-1">
+                        €{{ total_revenue|default:"0"|floatformat:2 }}
+                    </h3>
                 </div>
                 <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
                     <i class="ph-fill ph-currency-eur text-xl"></i>
                 </div>
             </div>
-            <div class="flex items-center text-sm">
-                <span class="text-brand font-medium flex items-center"><i class="ph ph-trend-up mr-1"></i> +8.5%</span>
-                <span class="text-slate-400 ml-2">vs mese scorso</span>
-            </div>
         </div>
 
+        <!-- Abbonamenti Attivi -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-start mb-4">
                 <div>
                     <p class="text-sm font-medium text-slate-500">Abbonamenti Attivi</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">84</h3>
+                    <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ active_subs }}</h3>
                 </div>
-                <div class="p-2.5 bg-blue-50 text-accent rounded-xl">
+                <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
                     <i class="ph-fill ph-check-circle text-xl"></i>
                 </div>
             </div>
-            <div class="flex items-center text-sm">
-                <span class="text-brand font-medium flex items-center"><i class="ph ph-trend-up mr-1"></i> +3</span>
-                <span class="text-slate-400 ml-2">nuovi in settimana</span>
-            </div>
         </div>
 
+        <!-- Piani Disponibili -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">In Scadenza (7gg)</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">12</h3>
+                    <p class="text-sm font-medium text-slate-500">Piani Disponibili</p>
+                    <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ subscription_plans.count }}</h3>
+                </div>
+                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <i class="ph-fill ph-list-dashes text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clienti Totali -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Clienti Totali</p>
+                    <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ subscriptions.count }}</h3>
                 </div>
                 <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-                    <i class="ph-fill ph-hourglass-high text-xl"></i>
+                    <i class="ph-fill ph-users text-xl"></i>
                 </div>
-            </div>
-            <div class="flex items-center text-sm">
-                <span class="text-amber-500 font-medium">Da sollecitare</span>
-            </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Scaduti (ultimi 30gg)</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">5</h3>
-                </div>
-                <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
-                    <i class="ph-fill ph-warning-circle text-xl"></i>
-                </div>
-            </div>
-            <div class="flex items-center text-sm text-slate-500">
-                <span class="text-slate-400 ml-2 font-medium">Tasso di abbandono: 4%</span>
             </div>
         </div>
     </div>
@@ -94,230 +81,161 @@
         <!-- Tab Navigation -->
         <div class="border-b border-slate-200 px-6 pt-6 bg-slate-50/50">
             <nav class="flex gap-6 -mb-px">
-                <button @click="tab = 'piani'" :class="tab === 'piani' ? 'border-accent text-accent' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="pb-4 border-b-2 font-medium text-sm transition-colors flex items-center">
+                <button @click="tab = 'piani'" :class="tab === 'piani' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="pb-4 border-b-2 font-medium text-sm transition-colors flex items-center">
                     <i class="ph ph-list-dashes mr-2 text-lg"></i> Il Tuo Listino Piani
                 </button>
-                <button @click="tab = 'iscritti'" :class="tab === 'iscritti' ? 'border-accent text-accent' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="pb-4 border-b-2 font-medium text-sm transition-colors flex items-center">
+                <button @click="tab = 'iscritti'" :class="tab === 'iscritti' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="pb-4 border-b-2 font-medium text-sm transition-colors flex items-center">
                     <i class="ph ph-users mr-2 text-lg"></i> Clienti Iscritti
-                </button>
-                <button @click="tab = 'transazioni'" :class="tab === 'transazioni' ? 'border-accent text-accent' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="pb-4 border-b-2 font-medium text-sm transition-colors flex items-center">
-                    <i class="ph ph-receipt mr-2 text-lg"></i> Storico Transazioni
                 </button>
             </nav>
         </div>
 
         <!-- Tab: Listino Piani -->
         <div x-show="tab === 'piani'" class="flex-1 p-6 overflow-y-auto bg-slate-50/30">
-            
+            {% if subscription_plans %}
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                <!-- Plan Card 1 -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:border-blue-300 hover:shadow-md transition-all">
+                {% for plan in subscription_plans %}
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:border-indigo-300 hover:shadow-md transition-all">
+                    <!-- Header -->
                     <div class="p-6 border-b border-slate-100 relative">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider rounded-md">Bestseller</span>
-                            <button class="text-slate-400 hover:text-accent"><i class="ph ph-dots-three-vertical text-xl"></i></button>
+                            <span class="px-2.5 py-1 {% if plan.is_active %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-600{% endif %} text-xs font-bold uppercase tracking-wider rounded-md">
+                                {% if plan.is_active %}Attivo{% else %}Inattivo{% endif %}
+                            </span>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mt-2">Premium Coaching</h3>
-                        <p class="text-sm text-slate-500 mt-1">Il pacchetto completo per la trasformazione fisica con supporto 1to1.</p>
+                        <h3 class="text-xl font-bold text-slate-900 mt-2">{{ plan.name }}</h3>
+                        <p class="text-sm text-slate-500 mt-1">{{ plan.plan_type }}</p>
                         <div class="mt-4 flex items-baseline">
-                            <span class="text-3xl font-bold text-slate-900">€ 150</span>
-                            <span class="text-slate-500 font-medium ml-1">/ mese</span>
+                            <span class="text-3xl font-bold text-slate-900">€{{ plan.price }}</span>
+                            <span class="text-slate-500 font-medium ml-1">/ {{ plan.billing_interval|default:"mese" }}</span>
                         </div>
                     </div>
+
+                    <!-- Body -->
                     <div class="p-6 flex-1 bg-slate-50/50">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Servizi Inclusi</p>
-                        <ul class="space-y-2 mb-6">
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Scheda allenamento personalizzata
-                            </li>
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Piano nutrizionale e macro
-                            </li>
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Check bisettimanale videochiamata
-                            </li>
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Supporto WhatsApp prioritario
-                            </li>
-                        </ul>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Descrizione</p>
+                        <p class="text-sm text-slate-700 line-clamp-3">
+                            {{ plan.description|truncatewords:20 }}
+                        </p>
+
+                        <div class="mt-6 pt-4 border-t border-slate-200 space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Durata:</span>
+                                <span class="font-medium text-slate-900">{{ plan.duration_days|default:"N/A" }} giorni</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Valuta:</span>
+                                <span class="font-medium text-slate-900">{{ plan.currency }}</span>
+                            </div>
+                        </div>
+
                         <!-- Stats Mini -->
                         <div class="pt-4 border-t border-slate-200 mt-auto flex justify-between items-center text-sm">
-                            <span class="text-slate-500"><b class="text-slate-800">42</b> attivi</span>
-                            <a href="{% url 'abbonamenti_detail' %}" class="text-accent font-semibold hover:text-blue-800 flex items-center">
-                                Gestisci <i class="ph ph-arrow-right ml-1"></i>
-                            </a>
+                            <span class="text-slate-500"><b class="text-slate-800">{{ plan.clientsubscription_set.count }}</b> iscritti</span>
                         </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex gap-2">
+                        <a href="{% url 'subscription_plan_detail' plan.id %}" class="flex-1 text-center px-3 py-2 rounded-lg bg-indigo-50 text-indigo-600 text-sm font-medium hover:bg-indigo-100 transition-colors">
+                            <i class="ph ph-info mr-1"></i> Dettagli
+                        </a>
+                        <a href="{% url 'subscription_plan_edit' plan.id %}" class="flex-1 text-center px-3 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                            <i class="ph ph-pencil mr-1"></i> Modifica
+                        </a>
                     </div>
                 </div>
-
-                <!-- Plan Card 2 -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:border-emerald-300 hover:shadow-md transition-all">
-                    <div class="p-6 border-b border-slate-100 relative">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider rounded-md">Entry Level</span>
-                            <button class="text-slate-400 hover:text-accent"><i class="ph ph-dots-three-vertical text-xl"></i></button>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mt-2">Solo Allenamento</h3>
-                        <p class="text-sm text-slate-500 mt-1">Per chi vuole solo una programmazione in sala pesi efficace.</p>
-                        <div class="mt-4 flex items-baseline">
-                            <span class="text-3xl font-bold text-slate-900">€ 60</span>
-                            <span class="text-slate-500 font-medium ml-1">/ mese</span>
-                        </div>
-                    </div>
-                    <div class="p-6 flex-1 bg-slate-50/50">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Servizi Inclusi</p>
-                        <ul class="space-y-2 mb-6">
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Scheda allenamento mensile
-                            </li>
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Analisi video esecuzioni
-                            </li>
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Check mensile asincrono
-                            </li>
-                            <li class="flex items-start text-sm text-slate-400 line-through">
-                                <i class="ph ph-x-circle text-slate-300 mt-0.5 mr-2"></i> Piano nutrizionale
-                            </li>
-                        </ul>
-                        <!-- Stats Mini -->
-                        <div class="pt-4 border-t border-slate-200 mt-auto flex justify-between items-center text-sm">
-                            <span class="text-slate-500"><b class="text-slate-800">28</b> attivi</span>
-                            <a href="{% url 'abbonamenti_detail' %}" class="text-accent font-semibold hover:text-blue-800 flex items-center">
-                                Gestisci <i class="ph ph-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Plan Card 3 -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col opacity-90 group hover:border-slate-300 hover:shadow-md transition-all grayscale-[20%]">
-                    <div class="p-6 border-b border-slate-100 relative">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-md">Trimestrale Promozionale</span>
-                            <button class="text-slate-400 hover:text-accent"><i class="ph ph-dots-three-vertical text-xl"></i></button>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mt-2">Summer Pack 3 Mesi</h3>
-                        <p class="text-sm text-slate-500 mt-1">Pacchetto chiuso con pagamento una tantum per il trimestre estivo.</p>
-                        <div class="mt-4 flex items-baseline">
-                            <span class="text-3xl font-bold text-slate-900">€ 350</span>
-                            <span class="text-slate-500 font-medium ml-1">una tantum</span>
-                        </div>
-                    </div>
-                    <div class="p-6 flex-1 bg-slate-50/50">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Servizi Inclusi</p>
-                        <ul class="space-y-2 mb-6">
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Valido per 3 mesi
-                            </li>
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Allenamento + Dieta
-                            </li>
-                            <li class="flex items-start text-sm text-slate-700 font-medium">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5 mr-2"></i> Sconto del 22% incluso
-                            </li>
-                        </ul>
-                        <!-- Stats Mini -->
-                        <div class="pt-4 border-t border-slate-200 mt-auto flex justify-between items-center text-sm">
-                            <span class="text-slate-500"><b class="text-slate-800">14</b> attivi</span>
-                            <a href="{% url 'abbonamenti_detail' %}" class="text-accent font-semibold hover:text-blue-800 flex items-center">
-                                Gestisci <i class="ph ph-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add New Button -->
-                <button class="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 hover:border-accent hover:bg-blue-50/30 transition-all flex flex-col items-center justify-center min-h-[350px] group">
-                    <div class="w-16 h-16 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-accent transition-colors mb-4">
-                        <i class="ph ph-plus text-2xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-700 group-hover:text-slate-900">Nuovo Piano</h3>
-                    <p class="text-sm text-slate-500 mt-1 max-w-[200px] text-center">Crea un nuovo pacchetto abbonamento o pacchetto singolo.</p>
-                </button>
+                {% endfor %}
             </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="flex flex-col items-center justify-center h-80">
+                <i class="ph ph-package text-5xl text-slate-300 mb-4"></i>
+                <h3 class="text-lg font-semibold text-slate-700">Nessun piano disponibile</h3>
+                <p class="text-slate-500 mt-2 text-center">Crea il tuo primo piano di abbonamento per iniziare.</p>
+                <a href="{% url 'subscription_plan_create' %}" class="mt-6 px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors">
+                    <i class="ph ph-plus mr-2"></i> Crea Piano
+                </a>
+            </div>
+            {% endif %}
         </div>
 
-        <!-- Tab: Iscritti (Mock Table) -->
-        <div x-show="tab === 'iscritti'" class="flex-1 flex flex-col overflow-hidden" x-cloak>
-            <!-- Same table style as Agenda list but with Subscription status -->
-            <div class="overflow-x-auto flex-1 p-6">
-                <table class="w-full text-left border-collapse bg-white border border-slate-200 rounded-xl shadow-sm hidden md:table">
-                    <thead>
-                        <tr class="bg-slate-50/80 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
-                            <th class="px-6 py-4">Cliente</th>
-                            <th class="px-6 py-4">Piano</th>
-                            <th class="px-6 py-4">Importo</th>
-                            <th class="px-6 py-4">Prossimo Rinnovo</th>
-                            <th class="px-6 py-4">Stato</th>
-                            <th class="px-6 py-4 text-right">Azioni</th>
+        <!-- Tab: Clienti Iscritti -->
+        <div x-show="tab === 'iscritti'" class="flex-1 p-6 overflow-y-auto bg-slate-50/30">
+            {% if subscriptions %}
+            <div class="overflow-x-auto bg-white rounded-xl border border-slate-200">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Cliente</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Piano</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Data Inizio</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Stato</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Pagamento</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Azioni</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                    <tbody class="divide-y divide-slate-200">
+                        {% for sub in subscriptions %}
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" class="w-8 h-8 rounded-full border border-slate-200 mr-3">
-                                    <div>
-                                        <p class="font-semibold text-slate-900">Luca Moretti</p>
-                                    </div>
+                            <td class="px-6 py-4">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-900">{{ sub.client.user.name }}</p>
+                                    <p class="text-xs text-slate-500">{{ sub.client.user.email }}</p>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-800">
-                                Premium Coaching
+                            <td class="px-6 py-4">
+                                <p class="text-sm font-medium text-slate-900">{{ sub.subscription_plan.name }}</p>
+                                <p class="text-xs text-slate-500">€{{ sub.subscription_plan.price }}</p>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-slate-500">€ 150/mese</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-slate-500">12 Maggio 2026</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] uppercase tracking-wider font-bold rounded">Attivo</span>
+                            <td class="px-6 py-4">
+                                <p class="text-sm text-slate-700">{{ sub.start_date|date:"d/m/Y" }}</p>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="#" class="text-accent hover:text-blue-800 transition-colors mr-3">Gestisci</a>
-                                <button class="text-slate-400 hover:text-slate-600"><i class="ph text-lg ph-dots-three-vertical"></i></button>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {% if sub.status == 'ACTIVE' %}bg-emerald-100 text-emerald-700{% elif sub.status == 'CANCELLED' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                                    {% if sub.status == 'ACTIVE' %}
+                                    <i class="ph ph-check-circle mr-1"></i>
+                                    Attivo
+                                    {% elif sub.status == 'CANCELLED' %}
+                                    <i class="ph ph-x-circle mr-1"></i>
+                                    Annullato
+                                    {% else %}
+                                    {{ sub.status }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {% if sub.payment_status == 'PAID' %}bg-emerald-100 text-emerald-700{% elif sub.payment_status == 'PENDING' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                    {% if sub.payment_status == 'PAID' %}
+                                    <i class="ph ph-check-circle mr-1"></i>
+                                    Pagato
+                                    {% elif sub.payment_status == 'PENDING' %}
+                                    <i class="ph ph-hourglass mr-1"></i>
+                                    In Sospeso
+                                    {% else %}
+                                    Mancato
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="{% url 'subscription_plan_detail' sub.subscription_plan.id %}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                                    Visualizza <i class="ph ph-arrow-right ml-1"></i>
+                                </a>
                             </td>
                         </tr>
-                        <!-- Altre righe mock -->
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold mr-3">SF</div>
-                                    <div>
-                                        <p class="font-semibold text-slate-900">Sara Ferrari</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-800">
-                                Solo Allenamento
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-slate-500">€ 60/mese</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-rose-500 font-medium">10 Aprile 2026 (Scaduto)</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2.5 py-1 bg-rose-50 text-rose-700 text-[11px] uppercase tracking-wider font-bold rounded">Sospeso</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="#" class="text-accent hover:text-blue-800 transition-colors mr-3">Gestisci</a>
-                                <button class="text-slate-400 hover:text-slate-600"><i class="ph text-lg ph-dots-three-vertical"></i></button>
-                            </td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- Tab: Transazioni (Empty State Mock) -->
-        <div x-show="tab === 'transazioni'" class="flex-1 flex items-center justify-center p-10 bg-slate-50/30" x-cloak>
-            <div class="text-center max-w-md mx-auto">
-                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200">
-                    <i class="ph ph-receipt text-3xl text-slate-400"></i>
-                </div>
-                <h3 class="text-lg font-bold text-slate-800 mb-2">Nessuna transazione recente</h3>
-                <p class="text-sm text-slate-500 mb-6">Le transazioni registrate dai pagamenti dei clienti appariranno qui. Collega Stripe per iniziare a ricevere pagamenti online.</p>
-                <button class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center mx-auto">
-                    <i class="ph ph-plug mr-2 text-lg"></i> Connetti Stripe Gateway
-                </button>
+            {% else %}
+            <!-- Empty State -->
+            <div class="flex flex-col items-center justify-center h-80">
+                <i class="ph ph-users text-5xl text-slate-300 mb-4"></i>
+                <h3 class="text-lg font-semibold text-slate-700">Nessun cliente iscritto</h3>
+                <p class="text-slate-500 mt-2 text-center">I tuoi clienti appariranno qui una volta iscritti a un piano.</p>
             </div>
+            {% endif %}
         </div>
-
     </div>
 </div>
 {% endblock %}

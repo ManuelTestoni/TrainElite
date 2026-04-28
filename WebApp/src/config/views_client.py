@@ -1,0 +1,354 @@
+from django.db.models import Count, Q
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import json
+
+from domain.accounts.models import CoachProfile, ClientProfile
+from domain.billing.models import ClientSubscription, SubscriptionPlan
+from domain.coaching.models import CoachingRelationship
+from domain.nutrition.models import NutritionAssignment
+
+from .session_utils import get_session_client, get_session_coach, get_session_user, get_active_relationship
+from .forms import SubscriptionPlanForm
+
+
+def _require_client(request):
+    user = get_session_user(request)
+    if not user or user.role != 'CLIENT':
+        return None, redirect('login')
+
+    client = get_session_client(request)
+    if not client:
+        return None, redirect('login')
+
+    return client, None
+
+
+def _active_client_coach(client):
+    relationship = get_active_relationship(client)
+    return relationship.coach if relationship else None
+
+
+def find_coach_list_view(request):
+    client, redirect_response = _require_client(request)
+    if redirect_response:
+        return redirect_response
+
+    search = request.GET.get('q', '').strip()
+    coaches = (
+        CoachProfile.objects
+        .select_related('user')
+        .annotate(
+            active_clients=Count('coaching_relationships_as_coach', filter=Q(coaching_relationships_as_coach__status='ACTIVE'), distinct=True),
+            active_plans=Count('subscription_plans', filter=Q(subscription_plans__is_active=True), distinct=True),
+        )
+        .order_by('first_name', 'last_name')
+    )
+
+    if search:
+        coaches = coaches.filter(
+            Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+            | Q(city__icontains=search)
+            | Q(specialization__icontains=search)
+            | Q(bio__icontains=search)
+        )
+
+    coach_cards = []
+    for coach in coaches:
+        active_plan = coach.subscription_plans.filter(is_active=True).order_by('-created_at').first()
+        coach_cards.append({
+            'id': coach.id,
+            'name': f'{coach.first_name} {coach.last_name}'.strip(),
+            'title': coach.specialization or 'Coach certificato',
+            'city': coach.city or 'Online',
+            'bio': coach.bio or coach.description or 'Profilo disponibile nella directory della piattaforma.',
+            'avatar': coach.profile_image_url or 'https://i.pravatar.cc/160?u=coach.%s' % coach.id,
+            'clients': coach.active_clients,
+            'plans': coach.active_plans,
+            'focus': coach.specialization or 'Allenamento',
+            'price': f"€ {active_plan.price}" if active_plan else 'Prezzi su richiesta',
+            'plan_name': active_plan.name if active_plan else 'Nessun piano attivo',
+            'services': [
+                active_plan.plan_type if active_plan else 'Supporto personalizzato',
+                f"{coach.years_experience}+ anni" if coach.years_experience else 'Esperienza non indicata',
+                'Agenda e check' if coach.active_clients else 'Nuovo coach sulla piattaforma',
+            ],
+        })
+
+    context = {
+        'coaches': coach_cards,
+        'search': search,
+        'selected_coach': coach_cards[0] if coach_cards else None,
+        'has_coach': _active_client_coach(client) is not None,
+        'client': client,
+    }
+    return render(request, 'pages/check/coach_finder.html', context)
+
+
+def coach_detail_view(request, coach_id):
+    client, redirect_response = _require_client(request)
+    if redirect_response:
+        return redirect_response
+
+    coach = get_object_or_404(CoachProfile.objects.select_related('user'), id=coach_id)
+    active_plans = coach.subscription_plans.filter(is_active=True).order_by('-created_at')
+    nutrition_plans = coach.nutrition_plans.filter(status='PUBLISHED').order_by('-created_at')
+    workout_plans = coach.workout_plans.order_by('-created_at')
+    active_relationship = get_active_relationship(client)
+
+    context = {
+        'coach': coach,
+        'coach_name': f'{coach.first_name} {coach.last_name}'.strip(),
+        'active_plans': active_plans,
+        'nutrition_plans': nutrition_plans,
+        'workout_plans': workout_plans,
+        'active_relationship': active_relationship,
+        'has_coach': active_relationship is not None,
+        'client': client,
+    }
+    return render(request, 'pages/check/coach_detail.html', context)
+
+
+def connect_coach_view(request, coach_id):
+    client, redirect_response = _require_client(request)
+    if redirect_response:
+        return redirect_response
+
+    if request.method != 'POST':
+        return redirect('check_coach_detail', coach_id=coach_id)
+
+    coach = get_object_or_404(CoachProfile, id=coach_id)
+    existing = CoachingRelationship.objects.filter(client=client, status='ACTIVE').first()
+    if existing:
+        existing.coach = coach
+        existing.start_date = timezone.now().date()
+        existing.save(update_fields=['coach', 'start_date', 'updated_at'])
+    else:
+        CoachingRelationship.objects.create(
+            coach=coach,
+            client=client,
+            status='ACTIVE',
+            start_date=timezone.now().date(),
+        )
+
+    return redirect('dashboard')
+
+
+def nutrizione_piani_view(request):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
+    if user.role == 'CLIENT':
+        client = get_session_client(request)
+        relationship = get_active_relationship(client)
+        if not relationship:
+            return redirect('check_coach_directory')
+
+        assignments = (
+            NutritionAssignment.objects
+            .select_related('nutrition_plan', 'coach')
+            .filter(client=client, coach=relationship.coach)
+            .order_by('-created_at')
+        )
+        return render(request, 'pages/nutrizione/client_piani.html', {
+            'is_client': True,
+            'client': client,
+            'coach': relationship.coach,
+            'nutrition_assignments': assignments,
+        })
+
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    plans = coach.nutrition_plans.order_by('-created_at')
+    assignments = NutritionAssignment.objects.filter(coach=coach).select_related('nutrition_plan', 'client').order_by('-created_at')
+    return render(request, 'pages/nutrizione/piani_list.html', {
+        'is_coach': True,
+        'coach': coach,
+        'nutrition_plans': plans,
+        'nutrition_assignments': assignments,
+    })
+
+
+def abbonamenti_dashboard_view(request):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
+    if user.role == 'CLIENT':
+        client = get_session_client(request)
+        relationship = get_active_relationship(client)
+        if not relationship:
+            return redirect('check_coach_directory')
+
+        plans = SubscriptionPlan.objects.filter(coach=relationship.coach, is_active=True).order_by('-created_at')
+        active_subscription = ClientSubscription.objects.filter(client=client, subscription_plan__coach=relationship.coach).select_related('subscription_plan').order_by('-created_at').first()
+        return render(request, 'pages/abbonamenti/client_dashboard.html', {
+            'is_client': True,
+            'client': client,
+            'coach': relationship.coach,
+            'available_plans': plans,
+            'active_subscription': active_subscription,
+        })
+
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    plans = SubscriptionPlan.objects.filter(coach=coach).order_by('-created_at')
+    subscriptions = ClientSubscription.objects.filter(subscription_plan__coach=coach).select_related('client', 'subscription_plan').order_by('-created_at')
+    
+    # Calculate KPIs
+    active_subs = subscriptions.filter(status='ACTIVE').count()
+    total_revenue = sum([s.subscription_plan.price for s in subscriptions.filter(status='ACTIVE')])
+    
+    return render(request, 'pages/abbonamenti/dashboard.html', {
+        'is_coach': True,
+        'coach': coach,
+        'subscription_plans': plans,
+        'subscriptions': subscriptions,
+        'active_subs': active_subs,
+        'total_revenue': total_revenue,
+    })
+
+
+# ===== SUBSCRIPTION PLAN MANAGEMENT (Coach) =====
+def subscription_plan_create_view(request):
+    """Crea un nuovo piano di abbonamento"""
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    if request.method == 'POST':
+        form = SubscriptionPlanForm(request.POST)
+        if form.is_valid():
+            plan = form.save(commit=False)
+            plan.coach = coach
+            plan.save()
+            return redirect('abbonamenti_dashboard')
+    else:
+        form = SubscriptionPlanForm()
+
+    return render(request, 'pages/abbonamenti/plan_form.html', {
+        'form': form,
+        'coach': coach,
+        'action': 'Crea',
+    })
+
+
+def subscription_plan_edit_view(request, plan_id):
+    """Modifica un piano di abbonamento esistente"""
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id, coach=coach)
+
+    if request.method == 'POST':
+        form = SubscriptionPlanForm(request.POST, instance=plan)
+        if form.is_valid():
+            form.save()
+            return redirect('abbonamenti_dashboard')
+    else:
+        form = SubscriptionPlanForm(instance=plan)
+
+    return render(request, 'pages/abbonamenti/plan_form.html', {
+        'form': form,
+        'plan': plan,
+        'coach': coach,
+        'action': 'Modifica',
+    })
+
+
+@require_http_methods(["DELETE"])
+def subscription_plan_delete_view(request, plan_id):
+    """Elimina un piano di abbonamento"""
+    coach = get_session_coach(request)
+    if not coach:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id, coach=coach)
+    
+    # Controlla se ci sono clienti attivi con questo piano
+    active_subs = ClientSubscription.objects.filter(subscription_plan=plan, status='ACTIVE')
+    if active_subs.exists():
+        return JsonResponse({
+            'error': f'Impossibile eliminare: {active_subs.count()} clienti attivi su questo piano'
+        }, status=400)
+    
+    plan.delete()
+    return JsonResponse({'success': True})
+
+
+def subscription_plan_detail_view(request, plan_id):
+    """Dettagli di un piano e clienti affiliati"""
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id, coach=coach)
+    subscriptions = ClientSubscription.objects.filter(subscription_plan=plan).select_related('client').order_by('-created_at')
+
+    return render(request, 'pages/abbonamenti/plan_detail.html', {
+        'plan': plan,
+        'coach': coach,
+        'subscriptions': subscriptions,
+        'active_count': subscriptions.filter(status='ACTIVE').count(),
+        'total_revenue': sum([s.subscription_plan.price for s in subscriptions.filter(status='ACTIVE')]),
+    })
+
+
+def find_coach_api(request):
+    """API AJAX per ricerca coach in tempo reale"""
+    client, redirect_response = _require_client(request)
+    if redirect_response:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    search = request.GET.get('q', '').strip()
+    coaches = (
+        CoachProfile.objects
+        .select_related('user')
+        .annotate(
+            active_clients=Count('coaching_relationships_as_coach', filter=Q(coaching_relationships_as_coach__status='ACTIVE'), distinct=True),
+            active_plans=Count('subscription_plans', filter=Q(subscription_plans__is_active=True), distinct=True),
+        )
+        .order_by('first_name', 'last_name')
+    )
+
+    if search:
+        coaches = coaches.filter(
+            Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+            | Q(city__icontains=search)
+            | Q(specialization__icontains=search)
+            | Q(bio__icontains=search)
+        )
+
+    coach_cards = []
+    for coach in coaches:
+        active_plan = coach.subscription_plans.filter(is_active=True).order_by('-created_at').first()
+        coach_cards.append({
+            'id': coach.id,
+            'name': f'{coach.first_name} {coach.last_name}'.strip(),
+            'title': coach.specialization or 'Coach certificato',
+            'city': coach.city or 'Online',
+            'bio': coach.bio or coach.description or 'Profilo disponibile nella directory della piattaforma.',
+            'avatar': coach.profile_image_url or 'https://i.pravatar.cc/160?u=coach.%s' % coach.id,
+            'clients': coach.active_clients,
+            'plans': coach.active_plans,
+            'focus': coach.specialization or 'Allenamento',
+            'price': f"€ {active_plan.price}" if active_plan else 'Prezzi su richiesta',
+            'plan_name': active_plan.name if active_plan else 'Nessun piano attivo',
+            'services': [
+                active_plan.plan_type if active_plan else 'Supporto personalizzato',
+                f"{coach.years_experience}+ anni" if coach.years_experience else 'Esperienza non indicata',
+                'Agenda e check' if coach.active_clients else 'Nuovo coach sulla piattaforma',
+            ],
+        })
+
+    return JsonResponse({'coaches': coach_cards})
