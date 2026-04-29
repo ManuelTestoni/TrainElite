@@ -33,7 +33,11 @@ urlpatterns = [
     path('logout/', views_auth.logout_view, name='logout'),
     
     path('', views.dashboard_view, name='dashboard'),
-    
+
+    # Clienti (coach)
+    path('clienti/', views_client.coach_clients_list_view, name='clienti_list'),
+    path('clienti/<int:client_id>/', views_client.coach_client_detail_view, name='clienti_detail'),
+
     # Nutrizione
     path('nutrizione/piani/', views_client.nutrizione_piani_view, name='nutrizione_piani'),
     path('nutrizione/anamnesi/', TemplateView.as_view(template_name='pages/nutrizione/anamnesi_create.html'), name='nutrizione_anamnesi'),

@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_datetime
 import json
 
@@ -75,7 +74,6 @@ def agenda_dashboard_view(request):
     return render(request, 'pages/agenda/dashboard.html', context)
 
 
-@csrf_exempt
 def api_agenda_events(request):
     user = get_session_user(request)
     if not user:

@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.http import JsonResponse
@@ -7,11 +7,133 @@ import json
 
 from domain.accounts.models import CoachProfile, ClientProfile
 from domain.billing.models import ClientSubscription, SubscriptionPlan
+from domain.checks.models import QuestionnaireResponse
 from domain.coaching.models import CoachingRelationship
 from domain.nutrition.models import NutritionAssignment
+from domain.workouts.models import WorkoutAssignment
 
 from .session_utils import get_session_client, get_session_coach, get_session_user, get_active_relationship
 from .forms import SubscriptionPlanForm
+
+
+def coach_clients_list_view(request):
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '')
+
+    relationships_qs = (
+        CoachingRelationship.objects
+        .filter(coach=coach)
+        .select_related('client', 'client__user')
+        .order_by('-start_date', '-created_at')
+    )
+    if status_filter:
+        relationships_qs = relationships_qs.filter(status=status_filter)
+    if search:
+        relationships_qs = relationships_qs.filter(
+            Q(client__first_name__icontains=search)
+            | Q(client__last_name__icontains=search)
+            | Q(client__primary_goal__icontains=search)
+        )
+
+    relationships = list(relationships_qs)
+    client_ids = [r.client_id for r in relationships]
+
+    active_workouts = {
+        wa.client_id: wa
+        for wa in WorkoutAssignment.objects.filter(
+            client_id__in=client_ids, coach=coach, status='ACTIVE'
+        ).select_related('workout_plan')
+    }
+    last_check_dates = dict(
+        QuestionnaireResponse.objects
+        .filter(client_id__in=client_ids, coach=coach)
+        .values('client_id')
+        .annotate(last_date=Max('created_at'))
+        .values_list('client_id', 'last_date')
+    )
+    active_subs = {
+        sub.client_id: sub
+        for sub in ClientSubscription.objects.filter(
+            client_id__in=client_ids,
+            subscription_plan__coach=coach,
+            status='ACTIVE'
+        ).select_related('subscription_plan')
+    }
+
+    clients_data = [
+        {
+            'client': rel.client,
+            'relationship': rel,
+            'active_workout': active_workouts.get(rel.client_id),
+            'last_check_date': last_check_dates.get(rel.client_id),
+            'active_subscription': active_subs.get(rel.client_id),
+        }
+        for rel in relationships
+    ]
+
+    return render(request, 'pages/clienti/list.html', {
+        'coach': coach,
+        'clients_data': clients_data,
+        'search': search,
+        'status_filter': status_filter,
+        'total_count': len(clients_data),
+        'active_count': sum(1 for r in relationships if r.status == 'ACTIVE'),
+    })
+
+
+def coach_client_detail_view(request, client_id):
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    relationship = get_object_or_404(
+        CoachingRelationship.objects.select_related('client', 'client__user'),
+        coach=coach,
+        client_id=client_id,
+    )
+    client = relationship.client
+
+    workout_assignments = (
+        WorkoutAssignment.objects
+        .filter(client=client, coach=coach)
+        .select_related('workout_plan')
+        .order_by('-created_at')
+    )
+    nutrition_assignments = (
+        NutritionAssignment.objects
+        .filter(client=client, coach=coach)
+        .select_related('nutrition_plan')
+        .order_by('-created_at')
+    )
+    subscriptions = (
+        ClientSubscription.objects
+        .filter(client=client, subscription_plan__coach=coach)
+        .select_related('subscription_plan')
+        .order_by('-created_at')
+    )
+    recent_checks = (
+        QuestionnaireResponse.objects
+        .filter(client=client, coach=coach)
+        .select_related('questionnaire_template')
+        .order_by('-created_at')[:5]
+    )
+
+    return render(request, 'pages/clienti/detail.html', {
+        'coach': coach,
+        'client': client,
+        'relationship': relationship,
+        'active_workout': workout_assignments.filter(status='ACTIVE').first(),
+        'workout_assignments': workout_assignments,
+        'active_nutrition': nutrition_assignments.filter(status='ACTIVE').first(),
+        'nutrition_assignments': nutrition_assignments,
+        'active_subscription': subscriptions.filter(status='ACTIVE').first(),
+        'subscriptions': subscriptions,
+        'recent_checks': recent_checks,
+    })
 
 
 def _require_client(request):

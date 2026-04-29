@@ -12,15 +12,9 @@ def login_view(request):
         
         try:
             user = User.objects.get(email=email)
-            if check_password(password, user.password_hash) or user.password_hash == password:   # check_password o raw match fallback
+            if check_password(password, user.password_hash):
                 request.session['user_id'] = user.id
                 request.session['user_role'] = user.role
-                
-                # Se la pass era salvata in chiaro (per dati di mock), la hachiamo.
-                if user.password_hash == password:
-                    user.password_hash = make_password(password)
-                    user.save()
-                    
                 return redirect('dashboard')
             else:
                 return render(request, 'pages/auth/login.html', {'error': 'Password non corretta'})
