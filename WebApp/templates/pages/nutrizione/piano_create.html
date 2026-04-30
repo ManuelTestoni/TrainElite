@@ -8,7 +8,8 @@ window._clients = {{ clients_json|safe }};
 
 <div class="w-full max-w-5xl mx-auto"
      x-data="planBuilder()"
-     x-init="init()">
+     x-init="init()"
+     @add-food.window="addFoodToMeal($event.detail.mealIndex, $event.detail.food)">
 
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -135,7 +136,7 @@ window._clients = {{ clients_json|safe }};
                 this.results = d.results; this.searching = false; this.show = true;
               },
               pick(food) {
-                $dispatch('add-food', {mealIndex: mIndex, food: food});
+                window.dispatchEvent(new CustomEvent('add-food', {detail: {mealIndex: mIndex, food: food}}));
                 this.q = ''; this.results = []; this.show = false;
               }
             }">
@@ -316,18 +317,17 @@ function planBuilder() {
           fat_per_100g: i.fat_per_100g,
         }))
       }));
+    },
 
-      this.$el.addEventListener('add-food', (e) => {
-        const { mealIndex, food } = e.detail;
-        this.meals[mealIndex].items.push({
-          food_id: food.id,
-          food_name: food.name,
-          quantity_g: 100,
-          kcal_per_100g: food.kcal,
-          protein_per_100g: food.protein,
-          carb_per_100g: food.carb,
-          fat_per_100g: food.fat,
-        });
+    addFoodToMeal(mealIndex, food) {
+      this.meals[mealIndex].items.push({
+        food_id: food.id,
+        food_name: food.name,
+        quantity_g: 100,
+        kcal_per_100g: food.kcal,
+        protein_per_100g: food.protein,
+        carb_per_100g: food.carb,
+        fat_per_100g: food.fat,
       });
     },
 

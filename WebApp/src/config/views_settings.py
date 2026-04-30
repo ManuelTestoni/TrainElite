@@ -1,19 +1,72 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.hashers import check_password, make_password
 
-from .session_utils import get_session_user, get_session_coach
+from .session_utils import get_session_user, get_session_coach, get_session_client
 
 
 def impostazioni_view(request):
     user = get_session_user(request)
     if not user:
         return redirect('login')
-    coach = get_session_coach(request)
-    if not coach:
-        return redirect('login')
 
     error = None
     active_tab = 'profilo'
+
+    if user.role == 'CLIENT':
+        client = get_session_client(request)
+        if not client:
+            return redirect('login')
+
+        if request.method == 'POST':
+            action = request.POST.get('action')
+
+            if action == 'profilo':
+                client.first_name = request.POST.get('first_name', '').strip() or client.first_name
+                client.last_name = request.POST.get('last_name', '').strip() or client.last_name
+                client.phone = request.POST.get('phone', '').strip() or None
+                birth = request.POST.get('birth_date', '').strip()
+                client.birth_date = birth if birth else client.birth_date
+                client.gender = request.POST.get('gender', '').strip() or None
+                height = request.POST.get('height_cm', '').strip()
+                client.height_cm = int(height) if height.isdigit() else client.height_cm
+                client.primary_goal = request.POST.get('primary_goal', '').strip() or None
+                client.save()
+                return redirect(f"{request.path}?saved=profilo")
+
+            elif action == 'sicurezza':
+                active_tab = 'sicurezza'
+                current_pw = request.POST.get('current_password', '')
+                new_pw = request.POST.get('new_password', '')
+                confirm_pw = request.POST.get('confirm_password', '')
+
+                if not check_password(current_pw, user.password_hash):
+                    error = 'La password attuale non è corretta.'
+                elif len(new_pw) < 8:
+                    error = 'La nuova password deve essere di almeno 8 caratteri.'
+                elif new_pw != confirm_pw:
+                    error = 'Le due password non coincidono.'
+                else:
+                    user.password_hash = make_password(new_pw)
+                    user.save()
+                    return redirect(f"{request.path}?saved=sicurezza")
+
+        saved = request.GET.get('saved')
+        if saved and not error:
+            active_tab = saved
+
+        return render(request, 'pages/impostazioni/dashboard.html', {
+            'client': client,
+            'auth_user': user,
+            'is_client': True,
+            'active_tab': active_tab,
+            'error': error,
+            'saved': saved,
+        })
+
+    # COACH
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
 
     if request.method == 'POST':
         action = request.POST.get('action')

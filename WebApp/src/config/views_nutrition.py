@@ -31,11 +31,28 @@ def nutrizione_piani_view(request):
         assignments = (
             NutritionAssignment.objects
             .select_related('nutrition_plan', 'coach')
+            .prefetch_related('nutrition_plan__meals__items__food')
             .filter(client=client, coach=rel.coach)
             .order_by('-created_at')
         )
+        assignments_data = []
+        for a in assignments:
+            kcal = prot = carb = fat = 0
+            for meal in a.nutrition_plan.meals.all():
+                for item in meal.items.all():
+                    kcal += item.kcal
+                    prot += item.protein
+                    carb += item.carbs
+                    fat += item.fat
+            assignments_data.append({
+                'assignment': a,
+                'kcal': round(kcal),
+                'prot': round(prot),
+                'carb': round(carb),
+                'fat': round(fat),
+            })
         return render(request, 'pages/nutrizione/client_piani.html', {
-            'nutrition_assignments': assignments,
+            'assignments_data': assignments_data,
             'coach': rel.coach,
         })
 
@@ -74,12 +91,12 @@ def nutrizione_piani_view(request):
 
     clients = (
         ClientProfile.objects.filter(
-            coaching_relationships__coach=coach,
-            coaching_relationships__status='ACTIVE'
+            coaching_relationships_as_client__coach=coach,
+            coaching_relationships_as_client__status='ACTIVE'
         ).select_related('user')
     )
     clients_json = json.dumps([
-        {'id': c.id, 'name': f'{c.user.first_name} {c.user.last_name}'.strip() or c.user.email}
+        {'id': c.id, 'name': f'{c.first_name} {c.last_name}'.strip() or c.user.email}
         for c in clients
     ])
 
@@ -102,12 +119,12 @@ def nutrizione_piano_create_view(request):
 
     clients = (
         ClientProfile.objects.filter(
-            coaching_relationships__coach=coach,
-            coaching_relationships__status='ACTIVE'
+            coaching_relationships_as_client__coach=coach,
+            coaching_relationships_as_client__status='ACTIVE'
         ).select_related('user')
     )
     clients_json = json.dumps([
-        {'id': c.id, 'name': f'{c.user.first_name} {c.user.last_name}'.strip() or c.user.email}
+        {'id': c.id, 'name': f'{c.first_name} {c.last_name}'.strip() or c.user.email}
         for c in clients
     ])
 
@@ -133,12 +150,12 @@ def nutrizione_piano_edit_view(request, plan_id):
 
     clients = (
         ClientProfile.objects.filter(
-            coaching_relationships__coach=coach,
-            coaching_relationships__status='ACTIVE'
+            coaching_relationships_as_client__coach=coach,
+            coaching_relationships_as_client__status='ACTIVE'
         ).select_related('user')
     )
     clients_json = json.dumps([
-        {'id': c.id, 'name': f'{c.user.first_name} {c.user.last_name}'.strip() or c.user.email}
+        {'id': c.id, 'name': f'{c.first_name} {c.last_name}'.strip() or c.user.email}
         for c in clients
     ])
 
@@ -213,6 +230,17 @@ def nutrizione_piano_detail_view(request, plan_id):
         .order_by('-assigned_at')
     )
 
+    clients = (
+        ClientProfile.objects.filter(
+            coaching_relationships_as_client__coach=coach,
+            coaching_relationships_as_client__status='ACTIVE'
+        ).select_related('user')
+    )
+    clients_json = json.dumps([
+        {'id': c.id, 'name': f'{c.first_name} {c.last_name}'.strip() or c.user.email}
+        for c in clients
+    ])
+
     return render(request, 'pages/nutrizione/piano_detail.html', {
         'plan': plan,
         'meals_detail': meals_detail,
@@ -222,6 +250,7 @@ def nutrizione_piano_detail_view(request, plan_id):
         'total_fat': round(total_fat),
         'total_fiber': round(total_fiber),
         'assignments': assignments,
+        'clients_json': clients_json,
     })
 
 
