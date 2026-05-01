@@ -5,8 +5,11 @@ from django.views.decorators.http import require_http_methods
 from django.db import transaction
 
 from config.session_utils import get_session_user, get_session_coach, get_session_client
-from domain.coaching.models import CoachingRelationship
-from domain.nutrition.models import Food, NutritionPlan, Meal, MealItem, NutritionAssignment
+from domain.coaching.models import CoachingRelationship, ClientAnamnesis
+from domain.nutrition.models import (
+    Food, NutritionPlan, Meal, MealItem, NutritionAssignment,
+    Supplement, SupplementSheet, SupplementSheetItem, SupplementAssignment,
+)
 from domain.accounts.models import ClientProfile
 
 
@@ -28,6 +31,9 @@ def nutrizione_piani_view(request):
         rel = _get_active_relationship(client)
         if not rel:
             return redirect('check_coach_directory')
+        if not ClientAnamnesis.objects.filter(client=client).exists():
+            return render(request, 'pages/nutrizione/no_prima_visita.html', {})
+
         assignments = (
             NutritionAssignment.objects
             .select_related('nutrition_plan', 'coach')
@@ -51,9 +57,19 @@ def nutrizione_piani_view(request):
                 'carb': round(carb),
                 'fat': round(fat),
             })
+        supp_assignment = (
+            SupplementAssignment.objects
+            .filter(client=client, coach=rel.coach, status='ACTIVE')
+            .select_related('sheet')
+            .prefetch_related('sheet__items__supplement')
+            .order_by('-assigned_at')
+            .first()
+        )
+
         return render(request, 'pages/nutrizione/client_piani.html', {
             'assignments_data': assignments_data,
             'coach': rel.coach,
+            'supp_assignment': supp_assignment,
         })
 
     coach = get_session_coach(request)
@@ -455,3 +471,227 @@ def _handle_plan_save(request, coach, plan):
                 )
 
     return JsonResponse({'ok': True, 'plan_id': plan.id})
+
+
+# ─── Supplement views ────────────────────────────────────────────────────────────
+
+def _clients_json(coach):
+    clients = ClientProfile.objects.filter(
+        coaching_relationships_as_client__coach=coach,
+        coaching_relationships_as_client__status='ACTIVE'
+    ).select_related('user')
+    return json.dumps([
+        {'id': c.id, 'name': f'{c.first_name} {c.last_name}'.strip() or c.user.email}
+        for c in clients
+    ])
+
+
+def integratori_view(request):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('login')
+
+    sheets = (
+        coach.supplement_sheets
+        .prefetch_related('items__supplement', 'assignments')
+        .order_by('-created_at')
+    )
+    sheets_data = []
+    for s in sheets:
+        sheets_data.append({
+            'sheet': s,
+            'item_count': s.items.count(),
+            'assigned_count': s.assignments.filter(status='ACTIVE').count(),
+        })
+
+    return render(request, 'pages/nutrizione/integratori_list.html', {
+        'sheets_data': sheets_data,
+        'clients_json': _clients_json(coach),
+    })
+
+
+def integratori_create_view(request):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        return _handle_sheet_save(request, coach, sheet=None)
+
+    return render(request, 'pages/nutrizione/integratori_create.html', {
+        'sheet': None,
+        'items_json': '[]',
+        'clients_json': _clients_json(coach),
+    })
+
+
+def integratori_edit_view(request, sheet_id):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('dashboard')
+
+    sheet = get_object_or_404(SupplementSheet, id=sheet_id, coach=coach)
+
+    if request.method == 'POST':
+        return _handle_sheet_save(request, coach, sheet=sheet)
+
+    items_data = []
+    for item in sheet.items.select_related('supplement').all():
+        items_data.append({
+            'supplement_id': item.supplement_id,
+            'supplement_name': item.supplement.name,
+            'supplement_unit': item.supplement.unit,
+            'dose': item.dose,
+            'timing': item.timing or '',
+            'notes': item.notes or '',
+        })
+
+    return render(request, 'pages/nutrizione/integratori_create.html', {
+        'sheet': sheet,
+        'items_json': json.dumps(items_data),
+        'clients_json': _clients_json(coach),
+    })
+
+
+def integratori_detail_view(request, sheet_id):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+    coach = get_session_coach(request)
+    if not coach:
+        return redirect('dashboard')
+
+    sheet = get_object_or_404(SupplementSheet, id=sheet_id, coach=coach)
+    items = sheet.items.select_related('supplement').all()
+    assignments = sheet.assignments.filter(status='ACTIVE').select_related('client')
+
+    return render(request, 'pages/nutrizione/integratori_detail.html', {
+        'sheet': sheet,
+        'items': items,
+        'assignments': assignments,
+        'clients_json': _clients_json(coach),
+    })
+
+
+def api_supplement_search(request):
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Non autenticato'}, status=401)
+
+    q = request.GET.get('q', '').strip()
+    category = request.GET.get('cat', '').strip()
+
+    supps = Supplement.objects.all()
+    if q:
+        supps = supps.filter(name__icontains=q)
+    if category:
+        supps = supps.filter(category=category)
+    supps = supps[:30]
+
+    return JsonResponse({'results': [
+        {
+            'id': s.id,
+            'name': s.name,
+            'category': s.category or '',
+            'unit': s.unit,
+            'description': s.description or '',
+        }
+        for s in supps
+    ]})
+
+
+@require_http_methods(["POST"])
+def api_sheet_assign(request, sheet_id):
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Non autenticato'}, status=401)
+    coach = get_session_coach(request)
+    if not coach:
+        return JsonResponse({'error': 'Non autorizzato'}, status=403)
+
+    sheet = get_object_or_404(SupplementSheet, id=sheet_id, coach=coach)
+    try:
+        data = json.loads(request.body)
+        client_id = int(data.get('client_id', 0))
+    except (ValueError, KeyError):
+        return JsonResponse({'error': 'Dati non validi'}, status=400)
+
+    client = get_object_or_404(ClientProfile, id=client_id)
+    rel = CoachingRelationship.objects.filter(coach=coach, client=client, status='ACTIVE').first()
+    if not rel:
+        return JsonResponse({'error': 'Cliente non associato'}, status=403)
+
+    SupplementAssignment.objects.filter(client=client, coach=coach, status='ACTIVE').update(status='CANCELLED')
+    assignment = SupplementAssignment.objects.create(
+        sheet=sheet, client=client, coach=coach, status='ACTIVE',
+        notes=data.get('notes', '') or None,
+    )
+    return JsonResponse({'ok': True, 'assignment_id': assignment.id})
+
+
+@require_http_methods(["POST"])
+def api_sheet_delete(request, sheet_id):
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Non autenticato'}, status=401)
+    coach = get_session_coach(request)
+    if not coach:
+        return JsonResponse({'error': 'Non autorizzato'}, status=403)
+    sheet = get_object_or_404(SupplementSheet, id=sheet_id, coach=coach)
+    sheet.delete()
+    return JsonResponse({'ok': True})
+
+
+def _handle_sheet_save(request, coach, sheet):
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        return JsonResponse({'error': 'JSON non valido'}, status=400)
+
+    title = data.get('title', '').strip()
+    if not title:
+        return JsonResponse({'error': 'Titolo obbligatorio'}, status=400)
+
+    items_raw = data.get('items', [])
+
+    with transaction.atomic():
+        if sheet is None:
+            sheet = SupplementSheet.objects.create(
+                coach=coach,
+                title=title,
+                notes=data.get('notes', '') or None,
+            )
+        else:
+            sheet.title = title
+            sheet.notes = data.get('notes', '') or None
+            sheet.save()
+            sheet.items.all().delete()
+
+        for order, item_data in enumerate(items_raw):
+            supp_id = item_data.get('supplement_id')
+            dose = item_data.get('dose', '').strip()
+            if not supp_id or not dose:
+                continue
+            try:
+                supp = Supplement.objects.get(id=supp_id)
+            except Supplement.DoesNotExist:
+                continue
+            SupplementSheetItem.objects.create(
+                sheet=sheet,
+                supplement=supp,
+                dose=dose,
+                timing=item_data.get('timing', '') or None,
+                notes=item_data.get('notes', '') or None,
+                order=order,
+            )
+
+    return JsonResponse({'ok': True, 'sheet_id': sheet.id})

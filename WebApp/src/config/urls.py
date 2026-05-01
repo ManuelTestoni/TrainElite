@@ -27,6 +27,7 @@ from . import views_auth
 from . import views_client
 from . import views_settings
 from . import views_nutrition
+from . import views_anamnesi
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -55,8 +56,16 @@ urlpatterns = [
     path('api/nutrizione/alimenti/', views_nutrition.api_food_search, name='nutrizione_food_search'),
     path('api/nutrizione/piani/<int:plan_id>/assegna/', views_nutrition.api_piano_assign, name='nutrizione_piano_assign'),
     path('api/nutrizione/piani/<int:plan_id>/elimina/', views_nutrition.nutrizione_piano_delete_view, name='nutrizione_piano_delete'),
-    path('nutrizione/anamnesi/', TemplateView.as_view(template_name='pages/nutrizione/anamnesi_create.html'), name='nutrizione_anamnesi'),
-    path('nutrizione/integratori/', TemplateView.as_view(template_name='pages/nutrizione/integratori_list.html'), name='nutrizione_integratori'),
+    path('nutrizione/anamnesi/', views_anamnesi.anamnesi_view, name='nutrizione_anamnesi'),
+    path('nutrizione/anamnesi/crea/<int:client_id>/', views_anamnesi.anamnesi_create_view, name='nutrizione_anamnesi_crea'),
+    path('nutrizione/anamnesi/<int:anamnesis_id>/', views_anamnesi.anamnesi_detail_view, name='nutrizione_anamnesi_detail'),
+    path('nutrizione/integratori/', views_nutrition.integratori_view, name='nutrizione_integratori'),
+    path('nutrizione/integratori/crea/', views_nutrition.integratori_create_view, name='nutrizione_integratori_crea'),
+    path('nutrizione/integratori/<int:sheet_id>/', views_nutrition.integratori_detail_view, name='nutrizione_integratori_detail'),
+    path('nutrizione/integratori/<int:sheet_id>/modifica/', views_nutrition.integratori_edit_view, name='nutrizione_integratori_edit'),
+    path('api/nutrizione/integratori/', views_nutrition.api_supplement_search, name='nutrizione_supplement_search'),
+    path('api/nutrizione/integratori/schede/<int:sheet_id>/assegna/', views_nutrition.api_sheet_assign, name='nutrizione_sheet_assign'),
+    path('api/nutrizione/integratori/schede/<int:sheet_id>/elimina/', views_nutrition.api_sheet_delete, name='nutrizione_sheet_delete'),
     
     # Allenamenti
     path('allenamenti/', views_workouts.allenamenti_list_view, name='allenamenti_list'),

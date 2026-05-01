@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+window._sheetItems = {{ items_json|safe }};
+window._suppClients = {{ clients_json|safe }};
+</script>
+
+<div class="w-full max-w-3xl mx-auto"
+     x-data="sheetBuilder()"
+     x-init="init()"
+     @add-supp.window="addItem($event.detail.supp)">
+
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <a href="{% url 'nutrizione_integratori' %}"
+         class="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-slate-600">
+        <i class="ph ph-arrow-left text-lg"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">
+          {% if sheet %}Modifica Scheda{% else %}Nuova Scheda Integrazione{% endif %}
+        </h1>
+        <p class="text-sm text-slate-500 mt-0.5">Aggiungi integratori, dosi e timing.</p>
+      </div>
+    </div>
+    <button @click="saveSheet()" :disabled="saving"
+            class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+      <i class="ph ph-floppy-disk text-lg"></i>
+      <span x-show="!saving">Salva</span><span x-show="saving">Salvataggio...</span>
+    </button>
+  </div>
+
+  <div class="space-y-5">
+
+    <!-- Info base -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Titolo *</label>
+        <input type="text" x-model="title" placeholder="Es. Protocollo Massa – Off-season"
+               class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-accent focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Note generali</label>
+        <textarea x-model="notes" rows="2" placeholder="Indicazioni generali, avvertenze..."
+                  class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-accent focus:outline-none resize-none"></textarea>
+      </div>
+    </div>
+
+    <!-- Items list -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+      <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+        <h2 class="text-sm font-bold text-slate-900">Integratori in scheda</h2>
+      </div>
+
+      <div class="divide-y divide-slate-50">
+        <template x-for="(item, idx) in items" :key="idx">
+          <div class="flex items-center gap-3 px-5 py-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-800" x-text="item.supplement_name"></p>
+              <p class="text-xs text-slate-400" x-text="item.supplement_category"></p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <input type="text" x-model="item.dose"
+                     class="w-24 px-2 py-1 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-accent focus:outline-none bg-slate-50"
+                     :placeholder="item.supplement_unit">
+              <input type="text" x-model="item.timing"
+                     class="w-28 px-2 py-1 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:outline-none bg-slate-50"
+                     placeholder="Quando...">
+              <button @click="items.splice(idx,1)"
+                      class="p-1 rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors">
+                <i class="ph ph-x text-xs"></i>
+              </button>
+            </div>
+          </div>
+        </template>
+        <div x-show="items.length === 0" class="px-5 py-8 text-center text-sm text-slate-400">
+          Nessun integratore aggiunto. Cercane uno qui sotto.
+        </div>
+      </div>
+
+      <!-- Search & add -->
+      <div class="px-5 py-4 border-t border-slate-100"
+           x-data="{
+             q: '', results: [], searching: false, show: false,
+             async search() {
+               if (this.q.length < 2) { this.results=[]; return; }
+               this.searching=true;
+               const r = await fetch('/api/nutrizione/integratori/?q='+encodeURIComponent(this.q));
+               const d = await r.json();
+               this.results=d.results; this.searching=false; this.show=true;
+             },
+             pick(s) {
+               window.dispatchEvent(new CustomEvent('add-supp', {detail:{supp:s}}));
+               this.q=''; this.results=[]; this.show=false;
+             }
+           }">
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-2 border border-dashed border-slate-300 rounded-xl hover:border-accent focus-within:border-accent transition-colors bg-slate-50">
+            <i class="ph ph-magnifying-glass text-slate-400 text-sm"></i>
+            <input type="text" x-model="q" @input.debounce.300ms="search()"
+                   placeholder="Cerca integratore da aggiungere..."
+                   class="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none">
+            <span x-show="searching" class="text-xs text-slate-400">...</span>
+          </div>
+          <div x-show="show && results.length > 0" @click.outside="show=false"
+               class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-20 max-h-52 overflow-y-auto">
+            <template x-for="s in results" :key="s.id">
+              <button type="button" @click="pick(s)"
+                      class="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-medium text-slate-800" x-text="s.name"></p>
+                    <p class="text-xs text-slate-400" x-text="s.category"></p>
+                  </div>
+                  <span class="text-xs font-bold text-slate-500 shrink-0" x-text="s.unit"></span>
+                </div>
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div x-show="errorMsg" class="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-600"
+         x-text="errorMsg"></div>
+  </div>
+</div>
+
+<script>
+function sheetBuilder() {
+  return {
+    title: '{{ sheet.title|escapejs|default:"" }}',
+    notes: '{{ sheet.notes|escapejs|default:"" }}',
+    items: [],
+    saving: false,
+    errorMsg: '',
+
+    init() {
+      const raw = window._sheetItems || [];
+      this.items = raw.map(i => ({
+        supplement_id: i.supplement_id,
+        supplement_name: i.supplement_name,
+        supplement_unit: i.supplement_unit,
+        supplement_category: '',
+        dose: i.dose,
+        timing: i.timing || '',
+        notes: i.notes || '',
+      }));
+    },
+
+    addItem(supp) {
+      this.items.push({
+        supplement_id: supp.id,
+        supplement_name: supp.name,
+        supplement_unit: supp.unit,
+        supplement_category: supp.category,
+        dose: '',
+        timing: '',
+        notes: '',
+      });
+    },
+
+    async saveSheet() {
+      if (!this.title.trim()) { this.errorMsg = 'Titolo obbligatorio.'; return; }
+      this.errorMsg = '';
+      this.saving = true;
+      const url = {% if sheet %}'{% url "nutrizione_integratori_edit" sheet.id %}'{% else %}'{% url "nutrizione_integratori_crea" %}'{% endif %};
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+        body: JSON.stringify({
+          title: this.title,
+          notes: this.notes,
+          items: this.items,
+        })
+      });
+      this.saving = false;
+      if (res.ok) {
+        const d = await res.json();
+        window.location.href = '/nutrizione/integratori/' + d.sheet_id + '/';
+      } else {
+        const d = await res.json().catch(() => ({}));
+        this.errorMsg = d.error || 'Errore durante il salvataggio.';
+      }
+    }
+  };
+}
+</script>
+{% endblock %}

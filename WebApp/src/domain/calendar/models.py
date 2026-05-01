@@ -11,6 +11,8 @@ class Appointment(models.Model):
     location = models.CharField(max_length=255, null=True, blank=True)
     meeting_url = models.URLField(max_length=500, null=True, blank=True)
     status = models.CharField(max_length=50)
+    is_recurring = models.BooleanField(default=False)
+    recurrence_rule = models.CharField(max_length=50, null=True, blank=True)  # settimanale, bisettimanale, mensile
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     cancellation_reason = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

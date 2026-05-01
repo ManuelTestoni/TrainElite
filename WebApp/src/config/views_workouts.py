@@ -100,7 +100,7 @@ def api_search_clients(request):
 def api_search_exercises(request):
     query = request.GET.get('q', '')
     exercises = Exercise.objects.filter(name__icontains=query)[:20]
-    data = [{'id': e.id, 'name': e.name, 'target': e.target_muscles or 'Generale'} for e in exercises]
+    data = [{'id': e.id, 'name': e.name, 'target': e.target_muscles or 'Generale', 'exercise_type': e.exercise_type or ''} for e in exercises]
     return JsonResponse(data, safe=False)
 
 

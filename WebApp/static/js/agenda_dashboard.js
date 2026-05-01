@@ -10,14 +10,22 @@ document.addEventListener('alpine:init', () => {
         clientSearchQuery: '',
         clientSearchResults: [],
         selectedClientName: '',
+        appointmentTypes: [
+            {value: 'check', label: 'Check progressi', icon: '📋'},
+            {value: 'prima_visita', label: 'Prima visita', icon: '🩺'},
+            {value: 'visita', label: 'Visita', icon: '📅'},
+            {value: 'consulenza', label: 'Consulenza / Video', icon: '💬'},
+        ],
         newEvent: {
             title: '',
             client_id: null,
-            appointment_type: 'Check',
+            appointment_type: 'check',
             start_datetime: '',
             end_datetime: '',
             description: '',
-            meeting_url: ''
+            meeting_url: '',
+            is_recurring: false,
+            recurrence_rule: 'settimanale',
         },
 
         init() {
@@ -67,15 +75,27 @@ document.addEventListener('alpine:init', () => {
             this.newEvent = {
                 title: '',
                 client_id: null,
-                appointment_type: 'Check',
+                appointment_type: 'check',
                 start_datetime: dateStr ? (dateStr.length > 10 ? dateStr.substring(0,16) : dateStr + "T09:00") : '',
                 end_datetime: dateStr ? (dateStr.length > 10 ? dateStr.substring(0,16) : dateStr + "T10:00") : '',
                 description: '',
-                meeting_url: ''
+                meeting_url: '',
+                is_recurring: false,
+                recurrence_rule: 'settimanale',
             };
             this.clientSearchQuery = '';
             this.clientSearchResults = [];
             this.selectedClientName = '';
+        },
+
+        appointmentTypePlaceholder() {
+            const placeholders = {
+                check: 'Es. Check mensile',
+                prima_visita: 'Es. Prima visita',
+                visita: 'Es. Visita di controllo',
+                consulenza: 'Es. Videoconsulenza',
+            };
+            return placeholders[this.newEvent.appointment_type] || 'Titolo appuntamento';
         },
 
         async searchClients() {

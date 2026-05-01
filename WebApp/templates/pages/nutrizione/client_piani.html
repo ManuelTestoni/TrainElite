@@ -72,5 +72,73 @@
         <p class="text-sm text-slate-500 mt-2">Quando il tuo coach pubblicherà un piano, comparirà qui.</p>
     </div>
     {% endif %}
+
+  <!-- Supplement sheet section -->
+  <div class="space-y-4">
+    <div>
+      <h2 class="text-xl font-bold text-slate-900 tracking-tight">Scheda Integrazione</h2>
+      <p class="text-sm text-slate-500 mt-1">Protocollo integratori assegnato dal tuo coach.</p>
+    </div>
+
+    {% if supp_assignment %}
+    {% with sheet=supp_assignment.sheet %}
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">{{ sheet.title }}</h3>
+          {% if sheet.notes %}
+          <p class="text-xs text-slate-500 mt-0.5">{{ sheet.notes }}</p>
+          {% endif %}
+        </div>
+        <span class="text-xs text-slate-400">dal {{ supp_assignment.assigned_at|date:"d M Y" }}</span>
+      </div>
+      {% with items=sheet.items.all %}
+      {% if items %}
+      <div class="divide-y divide-slate-50">
+        {% for item in items %}
+        <div class="px-5 py-3 flex items-center justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-slate-800">{{ item.supplement.name }}</p>
+            <p class="text-xs text-slate-400">{{ item.supplement.category }}</p>
+          </div>
+          <div class="flex items-center gap-4 text-right shrink-0">
+            {% if item.dose %}
+            <div>
+              <p class="text-xs text-slate-400 uppercase font-semibold">Dose</p>
+              <p class="text-sm font-bold text-slate-800">{{ item.dose }} {{ item.supplement.unit }}</p>
+            </div>
+            {% endif %}
+            {% if item.timing %}
+            <div>
+              <p class="text-xs text-slate-400 uppercase font-semibold">Quando</p>
+              <p class="text-sm text-slate-600">{{ item.timing }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% if supp_assignment.notes %}
+      <div class="px-5 py-3 border-t border-slate-100 bg-slate-50">
+        <p class="text-xs text-slate-500"><span class="font-semibold">Note del coach:</span> {{ supp_assignment.notes }}</p>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="px-5 py-8 text-center text-sm text-slate-400">Nessun integratore in questa scheda.</div>
+      {% endif %}
+      {% endwith %}
+    </div>
+    {% endwith %}
+    {% else %}
+    <div class="bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center">
+      <div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-3">
+        <i class="ph ph-pill text-3xl text-slate-400"></i>
+      </div>
+      <h3 class="text-base font-bold text-slate-900">Nessuna scheda integratori</h3>
+      <p class="text-sm text-slate-500 mt-1">Quando il tuo coach assegnerà una scheda, comparirà qui.</p>
+    </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}

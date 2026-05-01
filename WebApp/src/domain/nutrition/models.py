@@ -82,6 +82,59 @@ class MealItem(models.Model):
         return f"{self.quantity_g}g {self.food.name}"
 
 
+class Supplement(models.Model):
+    name = models.CharField(max_length=200)
+    category = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    unit = models.CharField(max_length=20, default='g')
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class SupplementSheet(models.Model):
+    coach = models.ForeignKey('accounts.CoachProfile', on_delete=models.CASCADE, related_name='supplement_sheets')
+    title = models.CharField(max_length=200)
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} (by {self.coach})"
+
+
+class SupplementSheetItem(models.Model):
+    sheet = models.ForeignKey(SupplementSheet, on_delete=models.CASCADE, related_name='items')
+    supplement = models.ForeignKey(Supplement, on_delete=models.CASCADE)
+    dose = models.CharField(max_length=100)
+    timing = models.CharField(max_length=100, null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.dose} {self.supplement.name}"
+
+
+class SupplementAssignment(models.Model):
+    sheet = models.ForeignKey(SupplementSheet, on_delete=models.CASCADE, related_name='assignments')
+    client = models.ForeignKey('accounts.ClientProfile', on_delete=models.CASCADE, related_name='supplement_assignments')
+    coach = models.ForeignKey('accounts.CoachProfile', on_delete=models.CASCADE, related_name='supplement_assignments_given')
+    status = models.CharField(max_length=50, default='ACTIVE')
+    notes = models.TextField(null=True, blank=True)
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.sheet.title} → {self.client}"
+
+
 class NutritionAssignment(models.Model):
     nutrition_plan = models.ForeignKey(NutritionPlan, on_delete=models.CASCADE, related_name='assignments')
     client = models.ForeignKey('accounts.ClientProfile', on_delete=models.CASCADE, related_name='nutrition_assignments')

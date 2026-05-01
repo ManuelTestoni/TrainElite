@@ -1,40 +1,21 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('workoutBuilder', () => ({
-        step: 1,
-        // Dati Base Scheda
         editMode: false,
         title: '',
         description: '',
         goal: 'Ipertrofia',
         level: 'Intermedio',
-        
-        // Assegnazione Cliente (Ricerca AJAX)
+
         clientSearchQuery: '',
         clientSearchResults: [],
         selectedClient: null,
-        
-        // Esercizi (Ricerca AJAX)
-        exerciseSearchQuery: '',
-        exerciseSearchResults: [],
-        
-        // Giorni di Allenamento
-        days: [
-            {
-                id: 1,
-                name: 'Giorno 1',
-                exercises: []
-            }
-        ],
-        
-        // UI Stato
+
+        days: [{ id: 1, name: 'Giorno 1', exercises: [] }],
+        daySearch: { 1: { q: '', results: [], searching: false, show: false } },
+
         isSaving: false,
-        draggedExercise: null,
-        
+
         init() {
-            // Carica primi esercizi all'avvio
-            this.searchExercises();
-            
-            // Se c'è un dataset di modifica in window (edit mode)
             if (window.WORKOUT_DATA) {
                 this.editMode = true;
                 this.title = window.WORKOUT_DATA.title || '';
@@ -49,9 +30,15 @@ document.addEventListener('alpine:init', () => {
                     this.days = window.WORKOUT_DATA.days;
                 }
             }
+            // Ensure all days have a daySearch entry
+            this.days.forEach(d => {
+                if (!this.daySearch[d.id]) {
+                    this.daySearch[d.id] = { q: '', results: [], searching: false, show: false };
+                }
+            });
         },
-        
-        // ----- METODI CLIENTI (AJAX) -----
+
+        // ----- CLIENTI -----
         async searchClients() {
             if (this.clientSearchQuery.length < 2) {
                 this.clientSearchResults = [];
@@ -59,96 +46,110 @@ document.addEventListener('alpine:init', () => {
             }
             try {
                 const response = await fetch(`/api/clients/search/?q=${this.clientSearchQuery}`);
-                const data = await response.json();
-                this.clientSearchResults = data;
+                this.clientSearchResults = await response.json();
             } catch (e) {
                 console.error(e);
             }
         },
-        
+
         selectClient(client) {
             this.selectedClient = client;
             this.clientSearchQuery = '';
             this.clientSearchResults = [];
         },
-        
+
         clearClient() {
             this.selectedClient = null;
         },
 
-        // ----- METODI ESERCIZI (AJAX) -----
-        async searchExercises() {
+        // ----- RICERCA ESERCIZI PER GIORNO -----
+        async searchForDay(dayId, query) {
+            const s = this.daySearch[dayId];
+            if (!s) return;
+            if (query.length < 2) { s.results = []; s.show = false; return; }
+            s.searching = true;
             try {
-                const response = await fetch(`/api/exercises/search/?q=${this.exerciseSearchQuery}`);
-                const data = await response.json();
-                this.exerciseSearchResults = data;
+                const r = await fetch('/api/exercises/search/?q=' + encodeURIComponent(query));
+                s.results = await r.json();
+                s.show = true;
             } catch (e) {
                 console.error(e);
+            } finally {
+                s.searching = false;
             }
         },
-        
-        // ----- BUILDER METODI -----
-        addDay() {
-            const nextId = this.days.length > 0 ? Math.max(...this.days.map(d => d.id)) + 1 : 1;
-            this.days.push({
-                id: nextId,
-                name: `Giorno ${nextId}`,
-                exercises: []
-            });
-        },
-        
-        removeDay(index) {
-            this.days.splice(index, 1);
-        },
-        
-        addExerciseToDay(dayIndex, exerciseObj) {
-            this.days[dayIndex].exercises.push({
-                exercise_id: exerciseObj.id,
-                name: exerciseObj.name,
-                target: exerciseObj.target,
+
+        pickForDay(dayIndex, dayId, ex) {
+            const newExercise = {
+                exercise_id: ex.id,
+                name: ex.name,
+                target: ex.target,
                 sets: '4',
                 reps: '10',
                 rest: '90s',
                 notes: ''
-            });
-        },
-        
-        removeExercise(dayIndex, exIndex) {
-            this.days[dayIndex].exercises.splice(exIndex, 1);
-        },
-        
-        // Helper per passare velocemente da sidebar
-        clickToAdd(exercise) {
-            if(this.days.length === 0) this.addDay();
-            const lastDayIndex = this.days.length - 1;
-            this.addExerciseToDay(lastDayIndex, exercise);
+            };
+            const day = this.days[dayIndex];
+            this.days[dayIndex] = { ...day, exercises: [...day.exercises, newExercise] };
+            const s = this.daySearch[dayId];
+            if (s) { s.q = ''; s.results = []; s.show = false; }
         },
 
-        // ----- SUBMIT AL BACKEND -----
+        closeDaySearch(dayId) {
+            const s = this.daySearch[dayId];
+            if (s) s.show = false;
+        },
+
+        // ----- BUILDER -----
+        addDay() {
+            const nextId = this.days.length > 0 ? Math.max(...this.days.map(d => d.id)) + 1 : 1;
+            this.days = [...this.days, { id: nextId, name: `Giorno ${nextId}`, exercises: [] }];
+            this.daySearch[nextId] = { q: '', results: [], searching: false, show: false };
+        },
+
+        removeDay(index) {
+            const dayId = this.days[index].id;
+            this.days = this.days.filter((_, i) => i !== index);
+            delete this.daySearch[dayId];
+        },
+
+        removeExercise(dayIndex, exIndex) {
+            const day = this.days[dayIndex];
+            this.days[dayIndex] = {
+                ...day,
+                exercises: day.exercises.filter((_, i) => i !== exIndex)
+            };
+        },
+
+        // ----- SAVE -----
         async saveWorkout(status = "ACTIVE") {
-            if(!this.title || !this.selectedClient) {
-                alert("Completa il Titolo e seleziona un Cliente (Step 1) prima di salvare.");
-                this.step = 1;
+            if (!this.title || !this.selectedClient) {
+                alert("Titolo e cliente obbligatori.");
                 return;
             }
-            
+            if (this.days.length > 7) {
+                alert("Massimo 7 giornate per scheda.");
+                return;
+            }
+
             this.isSaving = true;
-            
+
             const payload = {
                 title: this.title,
                 description: this.description,
                 goal: this.goal,
-                level: this.level, status: status,
+                level: this.level,
+                status: status,
                 client_id: this.selectedClient.id,
                 days: this.days
             };
 
             try {
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value 
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
                                || document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
-                               
-                const savedUrl = this.editMode && window.WORKOUT_EDIT_URL 
-                                 ? window.WORKOUT_EDIT_URL 
+
+                const savedUrl = this.editMode && window.WORKOUT_EDIT_URL
+                                 ? window.WORKOUT_EDIT_URL
                                  : '/allenamenti/crea/';
 
                 const response = await fetch(savedUrl, {
@@ -159,9 +160,9 @@ document.addEventListener('alpine:init', () => {
                     },
                     body: JSON.stringify(payload)
                 });
-                
+
                 const data = await response.json();
-                if(response.ok && data.redirect_url) {
+                if (response.ok && data.redirect_url) {
                     window.location.href = data.redirect_url;
                 } else {
                     alert("Errore: " + (data.error || "Impossibile salvare la scheda"));
