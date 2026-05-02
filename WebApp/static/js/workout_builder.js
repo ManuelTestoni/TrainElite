@@ -127,8 +127,8 @@ document.addEventListener('alpine:init', () => {
                 alert("Titolo e cliente obbligatori.");
                 return;
             }
-            if (this.days.length > 7) {
-                alert("Massimo 7 giornate per scheda.");
+            if (this.days.length > 20) {
+                alert("Massimo 20 giornate per scheda.");
                 return;
             }
 

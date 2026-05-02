@@ -55,10 +55,13 @@
                     <i class="ph ph-users text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Clienti</span>
                 </a>
+                {% if can_manage_workouts %}
                 <a href="{% url 'allenamenti_list' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
                     <i class="ph ph-activity text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Allenamenti</span>
                 </a>
+                {% endif %}
+                {% if can_manage_nutrition %}
                 <div x-data="{ expanded: false }" class="space-y-1">
                     <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all relative">
                         <div class="flex items-center">
@@ -73,9 +76,14 @@
                         <a href="{% url 'nutrizione_integratori' %}" class="block py-2 text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all">Integratori</a>
                     </div>
                 </div>
+                {% endif %}
                 <a href="{% url 'agenda_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
                     <i class="ph ph-calendar-blank text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Agenda</span>
+                </a>
+                <a href="{% url 'chat_list' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-chats-circle text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">Chat</span>
                 </a>
                 <a href="{% url 'check_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
                     <i class="ph ph-check-square-offset text-xl mr-3 text-slate-400 group-hover:text-white"></i>
@@ -98,11 +106,17 @@
                     <i class="ph ph-calendar-blank text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Agenda</span>
                 </a>
+                {% if has_any_professional %}
+                <a href="{% url 'chat_list' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
+                    <i class="ph ph-chats-circle text-xl mr-3 text-slate-400 group-hover:text-white"></i>
+                    <span class="font-medium text-sm">Chat</span>
+                </a>
+                {% endif %}
                 <a href="{% url 'check_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
                     <i class="ph ph-check-square-offset text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Check Progressi</span>
                 </a>
-                {% if has_coach %}
+                {% if has_any_professional %}
                 <a href="{% url 'abbonamenti_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white group transition-all">
                     <i class="ph ph-credit-card text-xl mr-3 text-slate-400 group-hover:text-white"></i>
                     <span class="font-medium text-sm">Abbonamenti</span>
@@ -166,10 +180,46 @@
 
             <!-- Header Actions -->
             <div class="flex items-center space-x-3 sm:space-x-5">
-                <button class="relative text-slate-500 hover:text-primary transition-colors">
-                    <i class="ph ph-bell text-2xl"></i>
-                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
-                </button>
+                {% if current_user %}
+                <div class="relative" x-data="notificationsBell()" x-init="init()">
+                    <button @click="toggleOpen()" class="relative text-slate-500 hover:text-primary transition-colors">
+                        <i class="ph ph-bell text-2xl"></i>
+                        <span x-show="unreadCount > 0"
+                              x-text="unreadCount > 9 ? '9+' : unreadCount"
+                              class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center"></span>
+                    </button>
+                    <div x-show="open" @click.outside="open = false"
+                         class="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50" x-cloak>
+                        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-slate-900">Notifiche</h3>
+                            <button @click="markAllRead()" x-show="unreadCount > 0" class="text-xs text-accent hover:underline">Segna tutte</button>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <template x-for="n in notifications" :key="n.id">
+                                <a :href="n.link_url || '#'" @click="markRead(n.id)"
+                                   :class="!n.is_read ? 'bg-blue-50/50' : ''"
+                                   class="block px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-start gap-2">
+                                        <div :class="getIconBg(n.type)" class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm">
+                                            <i :class="getIcon(n.type)"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-slate-800 truncate" x-text="n.title"></p>
+                                            <p class="text-xs text-slate-500 truncate mt-0.5" x-text="n.body"></p>
+                                            <p class="text-[10px] text-slate-400 mt-1" x-text="formatTime(n.created_at)"></p>
+                                        </div>
+                                        <span x-show="!n.is_read" class="w-2 h-2 bg-accent rounded-full shrink-0 mt-2"></span>
+                                    </div>
+                                </a>
+                            </template>
+                            <div x-show="notifications.length === 0" class="px-4 py-10 text-center text-sm text-slate-400">
+                                <i class="ph ph-bell-slash text-2xl"></i>
+                                <p class="mt-2">Nessuna notifica</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="w-px h-6 bg-slate-200 hidden sm:block"></div>
                 {% if is_coach %}
                 {% elif is_client and not has_coach %}
@@ -189,5 +239,6 @@
         </main>
     </div>
 
+    <script src="{% static 'js/notifications.js' %}"></script>
 </body>
 </html>

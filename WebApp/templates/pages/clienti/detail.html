@@ -51,6 +51,9 @@
                 <a href="{% url 'agenda_dashboard' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
                     <i class="ph ph-calendar-plus"></i> Prenota
                 </a>
+                <a href="{% url 'check_create' %}?client_id={{ client.id }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+                    <i class="ph ph-clipboard-text"></i> Compila Check
+                </a>
                 <a href="{% url 'allenamenti_create' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
                     <i class="ph ph-plus"></i> Assegna Piano
                 </a>
@@ -167,6 +170,122 @@
                 <i class="ph ph-plus-circle"></i> Associa piano
             </a>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Storico Cliente -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-6" x-data="{ tab: 'workouts' }">
+        <div class="px-6 py-4 border-b border-slate-100">
+            <h2 class="font-semibold text-slate-900 flex items-center gap-2">
+                <i class="ph ph-clock-counter-clockwise text-accent"></i> Storico
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Tutto quello che è stato assegnato o registrato per questo cliente.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-slate-100 px-4 overflow-x-auto">
+            <button @click="tab='workouts'" :class="tab==='workouts'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
+                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Schede</button>
+            <button @click="tab='nutrition'" :class="tab==='nutrition'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
+                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Diete</button>
+            <button @click="tab='supplements'" :class="tab==='supplements'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
+                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Integratori</button>
+            <button @click="tab='checks'" :class="tab==='checks'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
+                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Check</button>
+        </div>
+
+        <!-- Tab: Schede -->
+        <div x-show="tab==='workouts'" class="divide-y divide-slate-50">
+            {% for a in workout_assignments %}
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ a.workout_plan.title }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Creato {{ a.created_at|date:"d M Y" }}
+                        {% if a.start_date %}· dal {{ a.start_date|date:"d M Y" }}{% endif %}
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    {% if a.status == 'ACTIVE' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Attivo</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ a.status }}</span>
+                    {% endif %}
+                    <a href="{% url 'allenamenti_edit' a.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessuna scheda assegnata.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Tab: Diete -->
+        <div x-show="tab==='nutrition'" class="divide-y divide-slate-50" x-cloak>
+            {% for a in nutrition_assignments %}
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ a.nutrition_plan.title }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Creato {{ a.created_at|date:"d M Y" }}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    {% if a.status == 'ACTIVE' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Attivo</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ a.status }}</span>
+                    {% endif %}
+                    <a href="{% url 'nutrizione_piano_detail' a.nutrition_plan.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessuna dieta assegnata.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Tab: Integratori -->
+        <div x-show="tab==='supplements'" class="divide-y divide-slate-50" x-cloak>
+            {% for a in supplement_assignments %}
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ a.sheet.title }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Assegnato {{ a.assigned_at|date:"d M Y" }}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    {% if a.status == 'ACTIVE' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Attivo</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ a.status }}</span>
+                    {% endif %}
+                    <a href="{% url 'nutrizione_integratori_detail' a.sheet.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessuna scheda integratori assegnata.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Tab: Check -->
+        <div x-show="tab==='checks'" class="divide-y divide-slate-50" x-cloak>
+            {% for c in all_checks %}
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ c.questionnaire_template.title }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        {{ c.submitted_at|date:"d M Y"|default:c.created_at|date:"d M Y" }}
+                        {% if c.weight_kg %}· {{ c.weight_kg }} kg{% endif %}
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    {% if c.status == 'REVIEWED' %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Revisionato</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200">Da revisionare</span>
+                    {% endif %}
+                    <a href="{% url 'check_detail' c.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessun check registrato.</div>
+            {% endfor %}
         </div>
     </div>
 

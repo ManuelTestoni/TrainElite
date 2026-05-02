@@ -1,12 +1,18 @@
 from django.db import models
 
 class CoachingRelationship(models.Model):
+    RELATIONSHIP_TYPES = [
+        ('FULL', 'Full (Coach)'),
+        ('WORKOUT', 'Workout only'),
+        ('NUTRITION', 'Nutrition only'),
+    ]
+
     coach = models.ForeignKey('accounts.CoachProfile', on_delete=models.CASCADE, related_name='coaching_relationships_as_coach')
     client = models.ForeignKey('accounts.ClientProfile', on_delete=models.CASCADE, related_name='coaching_relationships_as_client')
     status = models.CharField(max_length=50) # Es. ACTIVE, INACTIVE, PENDING
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    relationship_type = models.CharField(max_length=100, null=True, blank=True)
+    relationship_type = models.CharField(max_length=20, choices=RELATIONSHIP_TYPES, null=True, blank=True)
     internal_notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

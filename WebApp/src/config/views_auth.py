@@ -30,24 +30,27 @@ def signup_view(request):
         last_name = request.POST.get('last_name')
         password = request.POST.get('password')
         role = request.POST.get('role')  # COACH o CLIENT
-        
+        professional_type = request.POST.get('professional_type', 'COACH')  # COACH, ALLENATORE, NUTRIZIONISTA
+
         if User.objects.filter(email=email).exists():
             return render(request, 'pages/auth/signup.html', {'error': 'Email già in uso. Accedi.'})
-            
+
         hashed_pw = make_password(password)
-        
+
         user = User.objects.create(
             email=email,
             password_hash=hashed_pw,
             role=role,
             is_active=True
         )
-        
+
         if role == 'COACH':
             CoachProfile.objects.create(
                 user=user,
                 first_name=first_name,
-                last_name=last_name
+                last_name=last_name,
+                professional_type=professional_type,
+                platform_subscription_status='ACTIVE'
             )
         elif role == 'CLIENT':
             ClientProfile.objects.create(
@@ -55,13 +58,13 @@ def signup_view(request):
                 first_name=first_name,
                 last_name=last_name
             )
-            
+
         # Login automatico
         request.session['user_id'] = user.id
         request.session['user_role'] = user.role
-        
+
         return redirect('dashboard')
-        
+
     return render(request, 'pages/auth/signup.html')
 
 def logout_view(request):

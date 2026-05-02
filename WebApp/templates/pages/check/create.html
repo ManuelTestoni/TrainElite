@@ -16,10 +16,25 @@
 
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Nuovo Check Progressi</h1>
+        {% if coach_filling_for_client %}
+        <p class="text-sm text-slate-500 mt-1">
+            Stai compilando un check di persona per <strong>{{ client.first_name }} {{ client.last_name }}</strong>.
+        </p>
+        {% else %}
         <p class="text-sm text-slate-500 mt-1">
             I dati vengono inviati direttamente a <strong>{{ coach.first_name }} {{ coach.last_name }}</strong>.
         </p>
+        {% endif %}
     </div>
+
+    {% if coach_filling_for_client %}
+    <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
+        <i class="ph-fill ph-info text-blue-500 text-lg shrink-0 mt-0.5"></i>
+        <div class="text-sm text-blue-700">
+            <strong>Modalità coach:</strong> Stai inserendo le misurazioni rilevate in studio per il cliente. Le foto sono opzionali.
+        </div>
+    </div>
+    {% endif %}
 
     {% if errors %}
     <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
@@ -28,8 +43,9 @@
     </div>
     {% endif %}
 
-    <form method="POST" action="{% url 'check_create' %}" enctype="multipart/form-data">
+    <form method="POST" action="{% url 'check_create' %}{% if coach_filling_for_client %}?client_id={{ client.id }}{% endif %}" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if coach_filling_for_client %}<input type="hidden" name="client_id" value="{{ client.id }}">{% endif %}
         <div class="space-y-6">
 
             <!-- SEZIONE 1: Peso -->

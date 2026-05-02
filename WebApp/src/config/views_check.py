@@ -137,20 +137,39 @@ def check_create_view(request):
     if not user:
         return redirect('login')
 
-    if user.role != 'CLIENT':
+    coach_filling_for_client = False
+
+    if user.role == 'COACH':
+        # Coach fills check on behalf of a client (in-studio visit)
+        coach = get_session_coach(request)
+        if not coach:
+            return redirect('login')
+        client_id = request.GET.get('client_id') or request.POST.get('client_id')
+        if not client_id:
+            return redirect('check_dashboard')
+        try:
+            client = ClientProfile.objects.get(
+                id=client_id,
+                coaching_relationships_as_client__coach=coach,
+                coaching_relationships_as_client__status='ACTIVE',
+            )
+        except ClientProfile.DoesNotExist:
+            return redirect('check_dashboard')
+        coach_filling_for_client = True
+    elif user.role == 'CLIENT':
+        client = get_session_client(request)
+        relationship = get_active_relationship(client)
+        if not relationship:
+            return redirect('check_coach_directory')
+        coach = relationship.coach
+    else:
         return redirect('check_dashboard')
-
-    client = get_session_client(request)
-    relationship = get_active_relationship(client)
-    if not relationship:
-        return redirect('check_coach_directory')
-
-    coach = relationship.coach
 
     if request.method == 'GET':
         return render(request, 'pages/check/create.html', {
             'client': client,
             'coach': coach,
+            'coach_filling_for_client': coach_filling_for_client,
         })
 
     # ── POST ───────────────────────────────────────────────────────
@@ -202,6 +221,7 @@ def check_create_view(request):
         return render(request, 'pages/check/create.html', {
             'client': client,
             'coach': coach,
+            'coach_filling_for_client': coach_filling_for_client,
             'errors': errors,
             'post_data': request.POST,
         })
@@ -252,6 +272,8 @@ def check_create_view(request):
                 captured_at=timezone.now(),
             )
 
+    if coach_filling_for_client:
+        return redirect('clienti_detail', client_id=client.id)
     return redirect('check_dashboard')
 
 

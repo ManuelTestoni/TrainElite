@@ -213,11 +213,11 @@ window.WORKOUT_EDIT_URL = "{% url 'allenamenti_edit' assignment_id %}";
 
     <!-- Add day (max 7) -->
     <div>
-      <button @click="days.length < 7 && addDay()" :disabled="days.length >= 7"
+      <button @click="days.length < 20 && addDay()" :disabled="days.length >= 20"
               class="w-full border-2 border-dashed rounded-2xl py-5 flex items-center justify-center gap-2 transition-colors text-sm font-semibold bg-white"
-              :class="days.length < 7 ? 'border-slate-300 text-slate-500 hover:border-accent hover:text-accent hover:bg-accent/5 cursor-pointer' : 'border-slate-200 text-slate-300 cursor-not-allowed'">
+              :class="days.length < 20 ? 'border-slate-300 text-slate-500 hover:border-accent hover:text-accent hover:bg-accent/5 cursor-pointer' : 'border-slate-200 text-slate-300 cursor-not-allowed'">
         <i class="ph ph-plus text-lg"></i>
-        <span x-text="days.length < 7 ? 'Aggiungi giornata' : 'Massimo 7 giornate raggiunto'"></span>
+        <span x-text="days.length < 20 ? 'Aggiungi giornata' : 'Massimo 20 giornate raggiunto'"></span>
       </button>
     </div>
 

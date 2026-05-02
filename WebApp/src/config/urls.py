@@ -28,6 +28,8 @@ from . import views_client
 from . import views_settings
 from . import views_nutrition
 from . import views_anamnesi
+from . import views_chat
+from . import views_notifications
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -107,4 +109,19 @@ urlpatterns = [
     
     # Impostazioni
     path('impostazioni/', views_settings.impostazioni_view, name='impostazioni_dashboard'),
+
+    # Chat
+    path('chat/', views_chat.chat_list_view, name='chat_list'),
+    path('chat/<int:conversation_id>/', views_chat.chat_detail_view, name='chat_detail'),
+    path('api/chat/<int:conversation_id>/send/', views_chat.api_send_message, name='chat_send'),
+    path('api/chat/<int:conversation_id>/read/', views_chat.api_mark_read, name='chat_mark_read'),
+    path('api/chat/<int:conversation_id>/messages/', views_chat.api_messages_since, name='chat_messages_since'),
+    path('api/chat/<int:conversation_id>/appointment/', views_chat.api_appointment_request, name='chat_appointment_request'),
+    path('api/chat/<int:conversation_id>/appointment/<int:appointment_id>/respond/', views_chat.api_appointment_respond, name='chat_appointment_respond'),
+
+    # Notifications
+    path('api/notifications/', views_notifications.api_notifications_list, name='notifications_list'),
+    path('api/notifications/unread-count/', views_notifications.api_notifications_unread_count, name='notifications_unread_count'),
+    path('api/notifications/<int:notification_id>/read/', views_notifications.api_notification_mark_read, name='notification_mark_read'),
+    path('api/notifications/read-all/', views_notifications.api_notifications_mark_all_read, name='notifications_mark_all_read'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

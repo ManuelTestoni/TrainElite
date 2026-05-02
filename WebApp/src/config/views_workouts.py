@@ -6,13 +6,13 @@ import json
 from domain.accounts.models import ClientProfile
 from domain.workouts.models import Exercise, WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutAssignment
 
-from .session_utils import get_session_user, get_session_coach, get_session_client, get_active_relationship
+from .session_utils import get_session_user, get_session_coach, get_session_client, get_active_relationship, can_manage_workouts
 
 
 def allenamenti_create_view(request):
     coach = get_session_coach(request)
-    if not coach:
-        return redirect('login')
+    if not coach or not can_manage_workouts(coach):
+        return redirect('dashboard')
     
     if request.method == 'POST':
         try:
@@ -80,7 +80,7 @@ def allenamenti_create_view(request):
 
 def api_search_clients(request):
     coach = get_session_coach(request)
-    if not coach:
+    if not coach or not can_manage_workouts(coach):
         return JsonResponse([], safe=False)
     query = request.GET.get('q', '')
     
@@ -140,8 +140,8 @@ def allenamenti_list_view(request):
         })
 
     coach = get_session_coach(request)
-    if not coach:
-        return redirect('login')
+    if not coach or not can_manage_workouts(coach):
+        return redirect('dashboard')
 
     assignments = WorkoutAssignment.objects.filter(coach=coach).select_related('workout_plan', 'client')
     
@@ -164,8 +164,8 @@ def allenamenti_list_view(request):
 
 def allenamenti_edit_view(request, assignment_id):
     coach = get_session_coach(request)
-    if not coach:
-        return redirect('login')
+    if not coach or not can_manage_workouts(coach):
+        return redirect('dashboard')
     assignment = WorkoutAssignment.objects.select_related('workout_plan', 'client').get(id=assignment_id, coach=coach)
     plan = assignment.workout_plan
     

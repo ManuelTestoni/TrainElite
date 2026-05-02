@@ -14,6 +14,12 @@ class User(models.Model):
         return self.email
 
 class CoachProfile(models.Model):
+    PROFESSIONAL_TYPES = [
+        ('COACH', 'Coach (Allenamento + Nutrizione)'),
+        ('ALLENATORE', 'Allenatore'),
+        ('NUTRIZIONISTA', 'Nutrizionista'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='coach_profile')
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -27,6 +33,7 @@ class CoachProfile(models.Model):
     certifications = models.TextField(null=True, blank=True)
     years_experience = models.IntegerField(null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
+    professional_type = models.CharField(max_length=20, choices=PROFESSIONAL_TYPES, default='COACH')
     platform_subscription_status = models.CharField(max_length=50)
     is_platform_subscription_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

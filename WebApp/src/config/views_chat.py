@@ -1,0 +1,413 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from django.db.models import Q, Max, Count
+import json
+
+from domain.chat.models import Conversation, Message, Notification
+from domain.accounts.models import CoachProfile, ClientProfile, User
+from domain.coaching.models import CoachingRelationship
+from domain.calendar.models import Appointment
+
+from .session_utils import get_session_user, get_session_coach, get_session_client
+
+
+def _get_or_create_conversation(coach, client):
+    """Get or create a conversation between coach and client."""
+    conv, _ = Conversation.objects.get_or_create(coach=coach, client=client)
+    return conv
+
+
+def _user_has_access_to_conversation(user, conversation):
+    """Check if user can access this conversation (must be either coach or client side)."""
+    if user.role == 'COACH':
+        coach = CoachProfile.objects.filter(user=user).first()
+        return coach and conversation.coach_id == coach.id
+    elif user.role == 'CLIENT':
+        client = ClientProfile.objects.filter(user=user).first()
+        return client and conversation.client_id == client.id
+    return False
+
+
+def _recipient_user_for_message(conversation, sender_user):
+    """Return the User who should receive a notification for a message in this conversation."""
+    if sender_user.role == 'COACH':
+        return conversation.client.user
+    return conversation.coach.user
+
+
+def chat_list_view(request):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
+    if user.role == 'COACH':
+        coach = get_session_coach(request)
+        if not coach:
+            return redirect('login')
+
+        # Auto-create conversations for all active clients (so coach can initiate)
+        active_rels = CoachingRelationship.objects.filter(coach=coach, status='ACTIVE').select_related('client')
+        for rel in active_rels:
+            Conversation.objects.get_or_create(coach=coach, client=rel.client)
+
+        conversations = (
+            Conversation.objects.filter(coach=coach)
+            .select_related('client', 'client__user')
+            .order_by('-last_message_at', '-created_at')
+        )
+
+        partners = []
+        for conv in conversations:
+            last_msg = conv.messages.order_by('-sent_at').first()
+            unread = conv.messages.filter(read_at__isnull=True).exclude(sender_user=user).count()
+            partners.append({
+                'conversation': conv,
+                'partner_name': f"{conv.client.first_name} {conv.client.last_name}".strip(),
+                'partner_avatar': '',
+                'last_message': last_msg,
+                'unread_count': unread,
+            })
+
+        return render(request, 'pages/chat/list.html', {
+            'partners': partners,
+            'is_coach': True,
+        })
+
+    if user.role == 'CLIENT':
+        client = get_session_client(request)
+        if not client:
+            return redirect('login')
+
+        # Auto-create conversations for all active coach relationships
+        active_rels = CoachingRelationship.objects.filter(client=client, status='ACTIVE').select_related('coach')
+        for rel in active_rels:
+            Conversation.objects.get_or_create(coach=rel.coach, client=client)
+
+        conversations = (
+            Conversation.objects.filter(client=client)
+            .select_related('coach', 'coach__user')
+            .order_by('-last_message_at', '-created_at')
+        )
+
+        partners = []
+        for conv in conversations:
+            last_msg = conv.messages.order_by('-sent_at').first()
+            unread = conv.messages.filter(read_at__isnull=True).exclude(sender_user=user).count()
+            partners.append({
+                'conversation': conv,
+                'partner_name': f"{conv.coach.first_name} {conv.coach.last_name}".strip(),
+                'partner_avatar': conv.coach.profile_image_url or '',
+                'partner_role': conv.coach.professional_type,
+                'last_message': last_msg,
+                'unread_count': unread,
+            })
+
+        return render(request, 'pages/chat/list.html', {
+            'partners': partners,
+            'is_client': True,
+        })
+
+    return redirect('dashboard')
+
+
+def chat_detail_view(request, conversation_id):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    if not _user_has_access_to_conversation(user, conversation):
+        return redirect('chat_list')
+
+    messages = conversation.messages.select_related('sender_user', 'appointment').order_by('sent_at')
+
+    # Mark unread messages as read
+    now = timezone.now()
+    conversation.messages.filter(read_at__isnull=True).exclude(sender_user=user).update(read_at=now)
+    # Mark related notifications as read
+    Notification.objects.filter(
+        target_user=user,
+        notification_type__in=['MESSAGE', 'APPOINTMENT_REQUEST', 'APPOINTMENT_ACCEPTED', 'APPOINTMENT_REJECTED'],
+        link_url__contains=f'/chat/{conversation.id}/',
+        is_read=False,
+    ).update(is_read=True)
+
+    if user.role == 'COACH':
+        partner_name = f"{conversation.client.first_name} {conversation.client.last_name}".strip()
+        partner_avatar = ''
+        partner_role = 'CLIENT'
+    else:
+        partner_name = f"{conversation.coach.first_name} {conversation.coach.last_name}".strip()
+        partner_avatar = conversation.coach.profile_image_url or ''
+        partner_role = conversation.coach.professional_type
+
+    return render(request, 'pages/chat/detail.html', {
+        'conversation': conversation,
+        'messages': messages,
+        'partner_name': partner_name,
+        'partner_avatar': partner_avatar,
+        'partner_role': partner_role,
+        'current_user_id': user.id,
+    })
+
+
+@require_http_methods(["POST"])
+def api_send_message(request, conversation_id):
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    if not _user_has_access_to_conversation(user, conversation):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    body = request.POST.get('body', '').strip()
+    attachment = request.FILES.get('attachment')
+
+    if not body and not attachment:
+        return JsonResponse({'error': 'Message empty'}, status=400)
+
+    msg_type = 'TEXT'
+    if attachment:
+        ct = (attachment.content_type or '').lower()
+        if ct.startswith('image/'):
+            msg_type = 'IMAGE'
+        elif ct.startswith('video/'):
+            msg_type = 'VIDEO'
+        else:
+            return JsonResponse({'error': 'Tipo file non supportato. Solo immagini o video.'}, status=400)
+
+    msg = Message.objects.create(
+        conversation=conversation,
+        sender_user=user,
+        body=body,
+        message_type=msg_type,
+        attachment=attachment,
+    )
+
+    conversation.last_message_at = msg.sent_at
+    conversation.save(update_fields=['last_message_at', 'updated_at'])
+
+    # Notify recipient
+    recipient = _recipient_user_for_message(conversation, user)
+    sender_name = ''
+    if user.role == 'COACH':
+        cp = CoachProfile.objects.filter(user=user).first()
+        if cp:
+            sender_name = f"{cp.first_name} {cp.last_name}".strip()
+    else:
+        cp = ClientProfile.objects.filter(user=user).first()
+        if cp:
+            sender_name = f"{cp.first_name} {cp.last_name}".strip()
+
+    Notification.objects.create(
+        target_user=recipient,
+        notification_type='MESSAGE',
+        title=f'Nuovo messaggio da {sender_name or user.email}',
+        body=(body[:120] + '…') if len(body) > 120 else body,
+        link_url=f'/chat/{conversation.id}/',
+    )
+
+    return JsonResponse({
+        'id': msg.id,
+        'body': msg.body,
+        'message_type': msg.message_type,
+        'attachment_url': msg.attachment.url if msg.attachment else None,
+        'sent_at': msg.sent_at.isoformat(),
+        'sender_user_id': user.id,
+    })
+
+
+@require_http_methods(["POST"])
+def api_mark_read(request, conversation_id):
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    if not _user_has_access_to_conversation(user, conversation):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    now = timezone.now()
+    conversation.messages.filter(read_at__isnull=True).exclude(sender_user=user).update(read_at=now)
+    return JsonResponse({'status': 'ok'})
+
+
+@require_http_methods(["POST"])
+def api_appointment_request(request, conversation_id):
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    if not _user_has_access_to_conversation(user, conversation):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    title = (data.get('title') or 'Appuntamento').strip()
+    start_str = data.get('start_datetime', '').strip()
+    end_str = data.get('end_datetime', '').strip()
+    location = (data.get('location') or '').strip()
+    notes = (data.get('notes') or '').strip()
+
+    start_dt = parse_datetime(start_str)
+    end_dt = parse_datetime(end_str)
+    if not start_dt or not end_dt:
+        return JsonResponse({'error': 'Date non valide'}, status=400)
+    if end_dt <= start_dt:
+        return JsonResponse({'error': 'La data fine deve essere successiva alla data inizio'}, status=400)
+
+    appointment = Appointment.objects.create(
+        coach=conversation.coach,
+        client=conversation.client,
+        appointment_type='consultation',
+        title=title,
+        description=notes or None,
+        start_datetime=start_dt,
+        end_datetime=end_dt,
+        location=location or None,
+        status='PENDING',
+    )
+
+    body_msg = f'Richiesta appuntamento: {title} il {start_dt.strftime("%d/%m/%Y %H:%M")}'
+    if location:
+        body_msg += f' presso {location}'
+
+    msg = Message.objects.create(
+        conversation=conversation,
+        sender_user=user,
+        body=body_msg,
+        message_type='APPOINTMENT_REQUEST',
+        appointment=appointment,
+    )
+    conversation.last_message_at = msg.sent_at
+    conversation.save(update_fields=['last_message_at', 'updated_at'])
+
+    recipient = _recipient_user_for_message(conversation, user)
+    Notification.objects.create(
+        target_user=recipient,
+        notification_type='APPOINTMENT_REQUEST',
+        title='Nuova richiesta di appuntamento',
+        body=body_msg,
+        link_url=f'/chat/{conversation.id}/',
+    )
+
+    return JsonResponse({
+        'id': msg.id,
+        'message_type': msg.message_type,
+        'appointment_id': appointment.id,
+        'appointment_status': appointment.status,
+        'body': msg.body,
+        'sent_at': msg.sent_at.isoformat(),
+        'sender_user_id': user.id,
+    })
+
+
+@require_http_methods(["POST"])
+def api_appointment_respond(request, conversation_id, appointment_id):
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    if not _user_has_access_to_conversation(user, conversation):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    appointment = get_object_or_404(Appointment, id=appointment_id, coach=conversation.coach, client=conversation.client)
+    if appointment.status != 'PENDING':
+        return JsonResponse({'error': 'Appointment già processato'}, status=400)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    action = (data.get('action') or '').lower()
+    if action not in ('accept', 'reject'):
+        return JsonResponse({'error': 'Azione non valida'}, status=400)
+
+    if action == 'accept':
+        appointment.status = 'SCHEDULED'
+        appointment.save(update_fields=['status', 'updated_at'])
+        body_msg = f'Appuntamento confermato: {appointment.title} il {appointment.start_datetime.strftime("%d/%m/%Y %H:%M")}'
+        notif_type = 'APPOINTMENT_ACCEPTED'
+        notif_title = 'Appuntamento accettato'
+    else:
+        appointment.status = 'CANCELLED'
+        appointment.cancellation_reason = 'Richiesta rifiutata'
+        appointment.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
+        body_msg = f'Appuntamento rifiutato: {appointment.title}'
+        notif_type = 'APPOINTMENT_REJECTED'
+        notif_title = 'Appuntamento rifiutato'
+
+    msg = Message.objects.create(
+        conversation=conversation,
+        sender_user=user,
+        body=body_msg,
+        message_type='APPOINTMENT_RESPONSE',
+        appointment=appointment,
+    )
+    conversation.last_message_at = msg.sent_at
+    conversation.save(update_fields=['last_message_at', 'updated_at'])
+
+    recipient = _recipient_user_for_message(conversation, user)
+    Notification.objects.create(
+        target_user=recipient,
+        notification_type=notif_type,
+        title=notif_title,
+        body=body_msg,
+        link_url=f'/chat/{conversation.id}/',
+    )
+
+    return JsonResponse({
+        'id': msg.id,
+        'appointment_status': appointment.status,
+        'body': msg.body,
+        'sent_at': msg.sent_at.isoformat(),
+    })
+
+
+def api_messages_since(request, conversation_id):
+    """Polling endpoint — returns messages newer than ?after=<message_id>."""
+    user = get_session_user(request)
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    if not _user_has_access_to_conversation(user, conversation):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    after_id = request.GET.get('after', '0')
+    try:
+        after_id = int(after_id)
+    except ValueError:
+        after_id = 0
+
+    qs = conversation.messages.filter(id__gt=after_id).select_related('sender_user', 'appointment').order_by('sent_at')
+
+    messages = []
+    for m in qs:
+        messages.append({
+            'id': m.id,
+            'body': m.body,
+            'message_type': m.message_type,
+            'attachment_url': m.attachment.url if m.attachment else None,
+            'sent_at': m.sent_at.isoformat(),
+            'sender_user_id': m.sender_user_id,
+            'appointment_id': m.appointment_id,
+            'appointment_status': m.appointment.status if m.appointment else None,
+            'appointment_title': m.appointment.title if m.appointment else None,
+        })
+
+    # Mark as read
+    now = timezone.now()
+    conversation.messages.filter(read_at__isnull=True).exclude(sender_user=user).update(read_at=now)
+
+    return JsonResponse({'messages': messages})

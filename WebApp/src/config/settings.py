@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'domain.checks',
     'domain.calendar',
     'domain.billing',
+    'domain.chat',
 ]
 
 MIDDLEWARE = [

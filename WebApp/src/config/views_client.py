@@ -12,7 +12,7 @@ from domain.accounts.models import CoachProfile, ClientProfile, User
 from domain.billing.models import ClientSubscription, SubscriptionPlan
 from domain.checks.models import QuestionnaireResponse
 from domain.coaching.models import CoachingRelationship
-from domain.nutrition.models import NutritionAssignment
+from domain.nutrition.models import NutritionAssignment, SupplementAssignment
 from domain.workouts.models import WorkoutAssignment
 
 from .session_utils import get_session_client, get_session_coach, get_session_user, get_active_relationship
@@ -118,11 +118,18 @@ def coach_client_detail_view(request, client_id):
         .select_related('subscription_plan')
         .order_by('-created_at')
     )
-    recent_checks = (
+    all_checks = (
         QuestionnaireResponse.objects
         .filter(client=client, coach=coach)
         .select_related('questionnaire_template')
-        .order_by('-created_at')[:5]
+        .order_by('-created_at')
+    )
+    recent_checks = all_checks[:5]
+    supplement_assignments = (
+        SupplementAssignment.objects
+        .filter(client=client, coach=coach)
+        .select_related('sheet')
+        .order_by('-assigned_at')
     )
 
     return render(request, 'pages/clienti/detail.html', {
@@ -136,6 +143,8 @@ def coach_client_detail_view(request, client_id):
         'active_subscription': subscriptions.filter(status='ACTIVE').first(),
         'subscriptions': subscriptions,
         'recent_checks': recent_checks,
+        'all_checks': all_checks,
+        'supplement_assignments': supplement_assignments,
     })
 
 
@@ -299,6 +308,7 @@ def find_coach_list_view(request):
         coach_cards.append({
             'id': coach.id,
             'name': f'{coach.first_name} {coach.last_name}'.strip(),
+            'professional_type': coach.professional_type,
             'title': coach.specialization or 'Coach certificato',
             'city': coach.city or 'Online',
             'bio': coach.bio or coach.description or 'Profilo disponibile nella directory della piattaforma.',
@@ -395,18 +405,52 @@ def connect_coach_view(request, coach_id):
         return redirect('check_coach_detail', coach_id=coach_id)
 
     coach = get_object_or_404(CoachProfile, id=coach_id)
-    existing = CoachingRelationship.objects.filter(client=client, status='ACTIVE').first()
-    if existing:
-        existing.coach = coach
-        existing.start_date = timezone.now().date()
-        existing.save(update_fields=['coach', 'start_date', 'updated_at'])
+
+    # Determine relationship type based on coach's professional_type
+    if coach.professional_type == 'COACH':
+        new_rel_type = 'FULL'
+    elif coach.professional_type == 'ALLENATORE':
+        new_rel_type = 'WORKOUT'
+    elif coach.professional_type == 'NUTRIZIONISTA':
+        new_rel_type = 'NUTRITION'
     else:
-        CoachingRelationship.objects.create(
-            coach=coach,
-            client=client,
-            status='ACTIVE',
-            start_date=timezone.now().date(),
-        )
+        new_rel_type = 'FULL'
+
+    # Get existing active relationships
+    existing_rels = CoachingRelationship.objects.filter(client=client, status='ACTIVE')
+
+    # Validation: pairing rules
+    for rel in existing_rels:
+        rel_type = rel.relationship_type or 'FULL'
+
+        # If client has FULL (Coach), can't add anything else
+        if rel_type == 'FULL':
+            return redirect('check_coach_detail', coach_id=coach_id)
+
+        # If connecting to COACH (FULL), must not have existing relationships
+        if new_rel_type == 'FULL':
+            return redirect('check_coach_detail', coach_id=coach_id)
+
+        # If connecting to ALLENATORE (WORKOUT), can't have another WORKOUT
+        if new_rel_type == 'WORKOUT' and rel_type == 'WORKOUT':
+            return redirect('check_coach_detail', coach_id=coach_id)
+
+        # If connecting to NUTRIZIONISTA (NUTRITION), can't have another NUTRITION
+        if new_rel_type == 'NUTRITION' and rel_type == 'NUTRITION':
+            return redirect('check_coach_detail', coach_id=coach_id)
+
+    # If connecting to COACH (FULL), remove existing WORKOUT and NUTRITION relationships
+    if new_rel_type == 'FULL':
+        existing_rels.delete()
+
+    # Create or update relationship
+    CoachingRelationship.objects.create(
+        coach=coach,
+        client=client,
+        status='ACTIVE',
+        start_date=timezone.now().date(),
+        relationship_type=new_rel_type,
+    )
 
     return redirect('dashboard')
 
@@ -657,6 +701,7 @@ def find_coach_api(request):
         coach_cards.append({
             'id': coach.id,
             'name': f'{coach.first_name} {coach.last_name}'.strip(),
+            'professional_type': coach.professional_type,
             'title': coach.specialization or 'Coach certificato',
             'city': coach.city or 'Online',
             'bio': coach.bio or coach.description or 'Profilo disponibile nella directory della piattaforma.',
