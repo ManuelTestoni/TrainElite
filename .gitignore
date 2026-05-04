@@ -208,5 +208,8 @@ xcuserdata/
 .build/
 
 WebApp/src/CLAUDE.md
-/WebApp/src/progress_photos/*
+
 .claude
+/WebApp/media/chat_attachments/*
+/WebApp/media/progress_photos/*
+/WebApp/src/progress_photos
