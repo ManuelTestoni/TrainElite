@@ -194,6 +194,39 @@
                 </div>
             </a>
 
+            <!-- Disconnect -->
+            <div x-data="{ confirmLeave: false }">
+                <button @click="confirmLeave = true"
+                        class="w-full flex items-center gap-3 px-4 py-3 bg-white border border-red-200 text-red-600 rounded-2xl hover:bg-red-50 transition-colors text-sm font-medium">
+                    <i class="ph ph-user-minus text-xl shrink-0"></i>
+                    <span>Rimuoviti da {{ coach.first_name }}</span>
+                </button>
+
+                <div x-show="confirmLeave" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
+                    <div x-show="confirmLeave" x-transition @click.outside="confirmLeave = false"
+                         class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+                        <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-2xl mx-auto mb-4">
+                            <i class="ph ph-warning"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 text-center mb-2">Confermi di uscire?</h3>
+                        <p class="text-sm text-slate-500 text-center mb-6">Perderai l'accesso ai contenuti di <strong>{{ coach.first_name }} {{ coach.last_name }}</strong>. Potrai sempre trovare un nuovo specialista.</p>
+                        <div class="flex gap-3">
+                            <button @click="confirmLeave = false"
+                                    class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                                Annulla
+                            </button>
+                            <form method="post" action="{% url 'client_disconnect_coach' relationship.id %}" class="flex-1">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="w-full px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors">
+                                    Sì, esci
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </aside>
     </div>
 </div>

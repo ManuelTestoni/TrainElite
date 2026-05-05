@@ -9,10 +9,16 @@
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">I Miei Check</h1>
             <p class="text-sm text-slate-500 mt-1">Tieni traccia dei tuoi progressi e visualizza lo storico delle misurazioni.</p>
         </div>
-        <a href="{% url 'check_create' %}"
-           class="inline-flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors">
-            <i class="ph ph-plus-circle text-lg"></i> Nuovo Check
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'check_progress_charts' %}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
+                <i class="ph ph-chart-line text-lg"></i> Il mio andamento
+            </a>
+            <a href="{% url 'check_create' %}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors">
+                <i class="ph ph-plus-circle text-lg"></i> Nuovo Check
+            </a>
+        </div>
     </div>
 
     <!-- Banner appuntamento check in arrivo -->

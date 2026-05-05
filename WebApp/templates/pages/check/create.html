@@ -253,4 +253,11 @@
         </div>
     </form>
 </div>
+<script>
+document.querySelectorAll('input[type="number"]').forEach(function(el) {
+    el.addEventListener('keydown', function(e) {
+        if (e.key === 'e' || e.key === 'E') e.preventDefault();
+    });
+});
+</script>
 {% endblock %}

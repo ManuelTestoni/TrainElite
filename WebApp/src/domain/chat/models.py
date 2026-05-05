@@ -47,6 +47,11 @@ class Notification(models.Model):
         ('APPOINTMENT_REQUEST', 'Appointment Request'),
         ('APPOINTMENT_ACCEPTED', 'Appointment Accepted'),
         ('APPOINTMENT_REJECTED', 'Appointment Rejected'),
+        ('CHECK_SUBMITTED', 'Check Submitted'),
+        ('CHECK_REVIEWED', 'Check Reviewed'),
+        ('WORKOUT_ASSIGNED', 'Workout Assigned'),
+        ('NUTRITION_ASSIGNED', 'Nutrition Plan Assigned'),
+        ('SUPPLEMENT_ASSIGNED', 'Supplement Sheet Assigned'),
     ]
 
     target_user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='notifications')

@@ -6,6 +6,7 @@ from django.db import transaction
 
 from config.session_utils import get_session_user, get_session_coach, get_session_client
 from domain.coaching.models import CoachingRelationship, ClientAnamnesis
+from domain.chat.models import Notification
 from domain.nutrition.models import (
     Food, NutritionPlan, Meal, MealItem, NutritionAssignment,
     Supplement, SupplementSheet, SupplementSheetItem, SupplementAssignment,
@@ -351,6 +352,13 @@ def api_piano_assign(request, plan_id):
         status='ACTIVE',
         notes=notes,
     )
+    Notification.objects.create(
+        target_user=client.user,
+        notification_type='NUTRITION_ASSIGNED',
+        title='Nuovo piano alimentare',
+        body=f'Ti è stato assegnato il piano "{plan.name}".',
+        link_url=f'/nutrizione/dettaglio/{assignment.id}/',
+    )
     return JsonResponse({'ok': True, 'assignment_id': assignment.id})
 
 
@@ -634,6 +642,13 @@ def api_sheet_assign(request, sheet_id):
     assignment = SupplementAssignment.objects.create(
         sheet=sheet, client=client, coach=coach, status='ACTIVE',
         notes=data.get('notes', '') or None,
+    )
+    Notification.objects.create(
+        target_user=client.user,
+        notification_type='SUPPLEMENT_ASSIGNED',
+        title='Nuova scheda integratori',
+        body=f'Ti è stata assegnata la scheda "{sheet.name}".',
+        link_url='/nutrizione/integratori/',
     )
     return JsonResponse({'ok': True, 'assignment_id': assignment.id})
 

@@ -57,19 +57,23 @@
                     <span class="font-medium text-sm">Clienti</span>
                 </a>
                 {% if can_manage_workouts %}
-                <a href="{% url 'allenamenti_list' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'allenamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
+                <a href="{% url 'allenamenti_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'allenamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-activity text-xl mr-3 {% if s == 'allenamenti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Allenamenti</span>
+                    {% if sidebar_notifications.allenamenti %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
                 </a>
                 {% endif %}
                 {% if can_manage_nutrition %}
                 <div x-data="{ expanded: {{ s|yesno:'true,false,false' }}{% if s == 'nutrizione' %}, _forceOpen: true{% endif %} }" class="space-y-1">
-                    <button @click="expanded = !expanded" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all group {% if s == 'nutrizione' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %}">
+                    <button @click="expanded = !expanded" class="relative w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all group {% if s == 'nutrizione' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %}">
                         <div class="flex items-center">
                             <i class="ph ph-apple-logo text-xl mr-3 {% if s == 'nutrizione' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                             <span class="font-medium text-sm">Nutrizione</span>
                         </div>
-                        <i class="ph ph-caret-down text-slate-500 transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
+                        <div class="flex items-center gap-1.5">
+                            {% if sidebar_notifications.nutrizione %}<span class="w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+                            <i class="ph ph-caret-down text-slate-500 transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
+                        </div>
                     </button>
                     <div x-show="expanded" x-collapse class="pl-11 pr-3 py-1 space-y-1" {% if s == 'nutrizione' %}x-init="expanded=true"{% endif %} x-cloak>
                         <a href="{% url 'nutrizione_piani' %}" class="block py-2 text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all">Piani Alimentari</a>
@@ -82,40 +86,46 @@
                     <i class="ph ph-calendar-blank text-xl mr-3 {% if s == 'agenda' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Agenda</span>
                 </a>
-                <a href="{% url 'chat_list' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'chat' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
+                <a href="{% url 'chat_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'chat' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-chats-circle text-xl mr-3 {% if s == 'chat' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Chat</span>
+                    {% if sidebar_notifications.chat %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
                 </a>
-                <a href="{% url 'check_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'check' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
+                <a href="{% url 'check_dashboard' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'check' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-check-square-offset text-xl mr-3 {% if s == 'check' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Check Progressi</span>
+                    {% if sidebar_notifications.check %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
                 </a>
                 <a href="{% url 'abbonamenti_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'abbonamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-credit-card text-xl mr-3 {% if s == 'abbonamenti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Abbonamenti</span>
                 </a>
                 {% elif is_client %}
-                <a href="{% url 'allenamenti_list' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'allenamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
+                <a href="{% url 'allenamenti_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'allenamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-activity text-xl mr-3 {% if s == 'allenamenti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">I Miei Allenamenti</span>
+                    {% if sidebar_notifications.allenamenti %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
                 </a>
-                <a href="{% url 'nutrizione_piani' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'nutrizione' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
+                <a href="{% url 'nutrizione_piani' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'nutrizione' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-apple-logo text-xl mr-3 {% if s == 'nutrizione' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Nutrizione</span>
+                    {% if sidebar_notifications.nutrizione %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
                 </a>
                 <a href="{% url 'agenda_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'agenda' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-calendar-blank text-xl mr-3 {% if s == 'agenda' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Agenda</span>
                 </a>
                 {% if has_any_professional %}
-                <a href="{% url 'chat_list' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'chat' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
+                <a href="{% url 'chat_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'chat' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-chats-circle text-xl mr-3 {% if s == 'chat' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Chat</span>
+                    {% if sidebar_notifications.chat %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
                 </a>
                 {% endif %}
-                <a href="{% url 'check_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'check' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
+                <a href="{% url 'check_dashboard' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'check' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
                     <i class="ph ph-check-square-offset text-xl mr-3 {% if s == 'check' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
                     <span class="font-medium text-sm">Check Progressi</span>
+                    {% if sidebar_notifications.check %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
                 </a>
                 {% if has_any_professional %}
                 <a href="{% url 'abbonamenti_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'abbonamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">

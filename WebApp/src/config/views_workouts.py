@@ -5,6 +5,7 @@ import json
 
 from domain.accounts.models import ClientProfile
 from domain.workouts.models import Exercise, WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutAssignment
+from domain.chat.models import Notification
 
 from .session_utils import get_session_user, get_session_coach, get_session_client, get_active_relationship, can_manage_workouts
 
@@ -41,6 +42,13 @@ def allenamenti_create_view(request):
                 client=client,
                 coach=coach,
                 status=data.get('status', 'ACTIVE')
+            )
+            Notification.objects.create(
+                target_user=client.user,
+                notification_type='WORKOUT_ASSIGNED',
+                title='Nuova scheda di allenamento',
+                body=f'Ti è stata assegnata la scheda "{title}".',
+                link_url='/allenamenti/',
             )
             
             days_data = data.get('days', [])

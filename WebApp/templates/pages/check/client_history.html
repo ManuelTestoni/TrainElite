@@ -23,10 +23,16 @@
                 <p class="text-sm text-slate-500 mt-0.5">{{ total_checks }} check registrati in totale</p>
             </div>
         </div>
-        <a href="{% url 'clienti_detail' target_client.id %}"
-           class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-            <i class="ph ph-user"></i> Profilo cliente
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'check_progress_charts_client' target_client.id %}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                <i class="ph ph-chart-line"></i> Andamento
+            </a>
+            <a href="{% url 'clienti_detail' target_client.id %}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                <i class="ph ph-user"></i> Profilo cliente
+            </a>
+        </div>
     </div>
 
     {% if page_obj.object_list %}

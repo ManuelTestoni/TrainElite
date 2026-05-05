@@ -12,6 +12,7 @@ import json
 from domain.checks.models import QuestionnaireTemplate, QuestionnaireResponse, ProgressPhoto
 from domain.coaching.models import CoachingRelationship
 from domain.accounts.models import ClientProfile
+from domain.chat.models import Notification
 
 try:
     from domain.calendar.models import Appointment
@@ -273,7 +274,22 @@ def check_create_view(request):
             )
 
     if coach_filling_for_client:
+        Notification.objects.create(
+            target_user=client.user,
+            notification_type='CHECK_SUBMITTED',
+            title='Check compilato',
+            body='Il tuo coach ha compilato un check per te.',
+            link_url='/check/',
+        )
         return redirect('clienti_detail', client_id=client.id)
+
+    Notification.objects.create(
+        target_user=coach.user,
+        notification_type='CHECK_SUBMITTED',
+        title=f'Nuovo check da {client.first_name} {client.last_name}',
+        body='Nuovo check da revisionare.',
+        link_url='/check/',
+    )
     return redirect('check_dashboard')
 
 
@@ -394,6 +410,69 @@ def client_check_history_view(request, client_id):
         'total_checks': paginator.count,
     }
     return render(request, 'pages/check/client_history.html', context)
+
+
+def check_progress_charts_view(request, client_id=None):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
+    if user.role == 'CLIENT':
+        target_client = get_session_client(request)
+        is_coach_view = False
+    elif user.role == 'COACH':
+        coach = get_session_coach(request)
+        if not coach:
+            return redirect('login')
+        if not client_id:
+            return redirect('check_dashboard')
+        try:
+            rel = CoachingRelationship.objects.select_related('client').get(coach=coach, client__id=client_id)
+            target_client = rel.client
+        except CoachingRelationship.DoesNotExist:
+            return redirect('check_dashboard')
+        is_coach_view = True
+    else:
+        return redirect('check_dashboard')
+
+    responses = list(
+        QuestionnaireResponse.objects.filter(client=target_client)
+        .order_by('submitted_at')
+        .values('submitted_at', 'weight_kg', 'body_circumferences', 'skinfolds')
+    )
+
+    labels = []
+    weight_data = []
+    circ_keys = ['shoulders', 'chest', 'waist', 'hips', 'thigh_right', 'arm_right']
+    skin_keys = ['chest', 'abdomen', 'thigh', 'tricep']
+    circ_data = {k: [] for k in circ_keys}
+    skin_data = {k: [] for k in skin_keys}
+
+    for r in responses:
+        labels.append(r['submitted_at'].strftime('%d/%m/%Y'))
+        weight_data.append(float(r['weight_kg']) if r['weight_kg'] else None)
+        circ = r['body_circumferences'] or {}
+        for k in circ_keys:
+            v = circ.get(k)
+            circ_data[k].append(float(v) if v else None)
+        skin = r['skinfolds'] or {}
+        for k in skin_keys:
+            v = skin.get(k)
+            skin_data[k].append(float(v) if v else None)
+
+    chart_data = {
+        'labels': labels,
+        'weight': weight_data,
+        'circumferences': circ_data,
+        'skinfolds': skin_data,
+    }
+
+    return render(request, 'pages/check/progress_charts.html', {
+        'target_client': target_client,
+        'is_coach_view': is_coach_view,
+        'chart_data_json': json.dumps(chart_data),
+        'total_checks': len(labels),
+    })
 
 
 # ── API endpoints ─────────────────────────────────────────────────
@@ -525,6 +604,13 @@ def api_check_review(request, response_id):
         response.coach_feedback = data.get('coach_feedback', '')
         response.coach_private_notes = data.get('coach_private_notes', '')
         response.save(update_fields=['status', 'coach_feedback', 'coach_private_notes', 'updated_at'])
+        Notification.objects.create(
+            target_user=response.client.user,
+            notification_type='CHECK_REVIEWED',
+            title='Check revisionato',
+            body='Il tuo coach ha revisionato il tuo check.',
+            link_url=f'/check/{response.id}/',
+        )
         return JsonResponse({'success': True})
     except QuestionnaireResponse.DoesNotExist:
         return JsonResponse({'error': 'Check non trovato'}, status=404)

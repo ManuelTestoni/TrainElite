@@ -49,6 +49,7 @@ urlpatterns = [
     # Il mio specialista (client)
     path('il-mio-coach/', views_client.client_my_coach_view, name='client_my_coach'),
     path('il-mio-specialista/<int:rel_id>/', views_client.client_specialist_detail_view, name='client_specialist_detail'),
+    path('il-mio-specialista/<int:rel_id>/lascia/', views_client.client_disconnect_coach_view, name='client_disconnect_coach'),
 
     # Nutrizione
     path('nutrizione/piani/', views_nutrition.nutrizione_piani_view, name='nutrizione_piani'),
@@ -99,6 +100,8 @@ urlpatterns = [
     path('check/', views_check.check_dashboard_view, name='check_dashboard'),
     path('check/crea/', views_check.check_create_view, name='check_create'),
     path('check/trova-coach/', views_client.find_coach_list_view, name='check_coach_directory'),
+    path('check/andamento/', views_check.check_progress_charts_view, name='check_progress_charts'),
+    path('check/andamento/<int:client_id>/', views_check.check_progress_charts_view, name='check_progress_charts_client'),
     path('check/cliente/<int:client_id>/', views_check.client_check_history_view, name='check_client_history'),
     path('check/<int:response_id>/', views_check.check_detail_view, name='check_detail'),
     path('api/check/trova-coach/', views_client.find_coach_api, name='check_coach_api'),

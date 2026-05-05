@@ -428,6 +428,20 @@ def client_specialist_detail_view(request, rel_id):
     return render(request, 'pages/clienti/il_mio_coach.html', context)
 
 
+def client_disconnect_coach_view(request, rel_id):
+    client, redirect_response = _require_client(request)
+    if redirect_response:
+        return redirect_response
+
+    if request.method != 'POST':
+        return redirect('client_my_coach')
+
+    relationship = get_object_or_404(CoachingRelationship, id=rel_id, client=client, status='ACTIVE')
+    relationship.status = 'INACTIVE'
+    relationship.save(update_fields=['status'])
+    return redirect('check_coach_directory')
+
+
 def connect_coach_view(request, coach_id):
     client, redirect_response = _require_client(request)
     if redirect_response:
@@ -545,8 +559,8 @@ def assign_plan_to_client_view(request, plan_id):
         coaching_relationships_as_client__status='ACTIVE',
     )
 
-    if ClientSubscription.objects.filter(client=client, subscription_plan=plan, status='ACTIVE').exists():
-        return JsonResponse({'error': 'Il cliente è già iscritto a questo piano.'}, status=400)
+    if ClientSubscription.objects.filter(client=client, subscription_plan__coach=coach, status='ACTIVE').exists():
+        return JsonResponse({'error': 'Questo cliente ha già un abbonamento attivo con te.'}, status=400)
 
     end_date = None
     if plan.duration_days:
@@ -604,6 +618,11 @@ def abbonamenti_dashboard_view(request):
         .values('id', 'first_name', 'last_name')
     )
 
+    already_subscribed_ids = list(
+        ClientSubscription.objects.filter(subscription_plan__coach=coach, status='ACTIVE')
+        .values_list('client_id', flat=True).distinct()
+    )
+
     return render(request, 'pages/abbonamenti/dashboard.html', {
         'is_coach': True,
         'coach': coach,
@@ -612,6 +631,7 @@ def abbonamenti_dashboard_view(request):
         'active_subs': active_subs,
         'total_revenue': total_revenue,
         'coach_clients_json': json.dumps(coach_clients),
+        'already_subscribed_ids_json': json.dumps(already_subscribed_ids),
     })
 
 

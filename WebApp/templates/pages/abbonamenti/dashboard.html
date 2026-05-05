@@ -61,47 +61,57 @@
             </div>
         </div>
 
-        <!-- Clienti Totali -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Clienti Totali</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ subscriptions.count }}</h3>
-                </div>
-                <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-                    <i class="ph-fill ph-users text-xl"></i>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Modal Assegna Piano -->
-    <div x-data="{
+    <script>
+    function planAssignModal() {
+        return {
             show: false,
             planId: null,
             planName: '',
             clients: {{ coach_clients_json|safe }},
+            subscribedIds: {{ already_subscribed_ids_json|safe }},
+            eligibleClients: [],
             selectedClientId: '',
             paymentNotes: '',
             loading: false,
             errorMsg: '',
-            open(id, name) { this.planId = id; this.planName = name; this.selectedClientId = ''; this.paymentNotes = ''; this.errorMsg = ''; this.show = true; },
+            open(id, name) {
+                this.planId = id;
+                this.planName = name;
+                this.selectedClientId = '';
+                this.paymentNotes = '';
+                this.errorMsg = '';
+                this.eligibleClients = this.clients.filter(c => !this.subscribedIds.includes(c.id));
+                this.show = true;
+            },
             async submit() {
                 if (!this.selectedClientId) { this.errorMsg = 'Seleziona un cliente.'; return; }
-                this.loading = true; this.errorMsg = '';
-                const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.cookie.split('; ').find(r => r.startsWith('csrftoken=')).split('=')[1];
-                const res = await fetch('/api/abbonamenti/piano/' + this.planId + '/assegna/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
-                    body: 'client_id=' + encodeURIComponent(this.selectedClientId) + '&payment_notes=' + encodeURIComponent(this.paymentNotes)
-                });
-                const data = await res.json();
-                this.loading = false;
-                if (res.ok) { window.location.reload(); }
-                else { this.errorMsg = data.error || 'Errore durante l\'assegnazione.'; }
+                this.loading = true;
+                this.errorMsg = '';
+                try {
+                    const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                        || document.cookie.split('; ').find(r => r.startsWith('csrftoken=')).split('=')[1];
+                    const res = await fetch('/api/abbonamenti/piano/' + this.planId + '/assegna/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
+                        body: 'client_id=' + encodeURIComponent(this.selectedClientId)
+                            + '&payment_notes=' + encodeURIComponent(this.paymentNotes)
+                    });
+                    const data = await res.json();
+                    if (res.ok) { window.location.reload(); }
+                    else { this.errorMsg = data.error || 'Errore durante l\'assegnazione.'; }
+                } catch (e) {
+                    this.errorMsg = 'Errore di rete. Riprova.';
+                } finally {
+                    this.loading = false;
+                }
             }
-        }"
-        @keydown.escape.window="show = false">
+        };
+    }
+    </script>
+    <div x-data="planAssignModal()" @keydown.escape.window="show = false">
         {% csrf_token %}
 
         <div x-show="show" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
@@ -128,10 +138,13 @@
                         <select x-model="selectedClientId"
                                 class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all">
                             <option value="">— Seleziona cliente —</option>
-                            <template x-for="c in clients" :key="c.id">
+                            <template x-for="c in eligibleClients" :key="c.id">
                                 <option :value="c.id" x-text="c.first_name + ' ' + c.last_name"></option>
                             </template>
                         </select>
+                        <template x-if="eligibleClients.length === 0 && clients.length > 0">
+                            <p class="text-xs text-amber-600 mt-1">Tutti i tuoi clienti hanno già un abbonamento attivo.</p>
+                        </template>
                         <template x-if="clients.length === 0">
                             <p class="text-xs text-amber-600 mt-1">Nessun cliente attivo. <a href="{% url 'clienti_registra' %}" class="underline">Registra un cliente prima.</a></p>
                         </template>
