@@ -1,344 +1,334 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ client.first_name }} {{ client.last_name }}{% endblock %}
+
 {% block content %}
-<div class="w-full max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-6">
 
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-slate-500">
-        <a href="{% url 'clienti_list' %}" class="hover:text-slate-900 transition-colors flex items-center gap-1">
-            <i class="ph ph-users"></i> Clienti
+    <nav class="al-tag flex items-center gap-2">
+        <a href="{% url 'clienti_list' %}" class="al-link al-link-quiet flex items-center gap-1">
+            <i class="ph ph-users text-xs"></i><span>Clienti</span>
         </a>
-        <i class="ph ph-caret-right text-xs"></i>
-        <span class="text-slate-900 font-medium">{{ client.first_name }} {{ client.last_name }}</span>
+        <i class="ph ph-caret-right text-[9px]"></i>
+        <span class="text-ink">{{ client.first_name }} {{ client.last_name }}</span>
     </nav>
 
     <!-- Client Header -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+    <div class="al-card al-reveal">
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-            <!-- Avatar -->
-            <div class="w-16 h-16 rounded-2xl bg-accent/10 text-accent flex items-center justify-center font-bold text-2xl shrink-0">
+            <div class="al-avatar al-avatar-lg al-avatar-sq" style="background: var(--al-aegean);">
                 {{ client.first_name|slice:":1" }}{{ client.last_name|slice:":1" }}
             </div>
 
-            <!-- Info -->
             <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-3 mb-1">
-                    <h1 class="text-xl font-bold text-slate-900">{{ client.first_name }} {{ client.last_name }}</h1>
+                <p class="al-eyebrow mb-1">Atleta</p>
+                <div class="flex flex-wrap items-center gap-3 mb-2">
+                    <h1 class="al-h-1" style="font-size: clamp(24px, 2.4vw, 32px);">{{ client.first_name }} <span class="al-display-i">{{ client.last_name }}</span></h1>
                     {% if relationship.status == 'ACTIVE' %}
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Attivo
-                    </span>
+                    <span class="al-badge al-badge-success"><span class="dot"></span>Attivo</span>
                     {% elif relationship.status == 'PENDING' %}
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> In attesa
-                    </span>
+                    <span class="al-badge al-badge-warn"><span class="dot"></span>In attesa</span>
                     {% else %}
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
-                        Inattivo
-                    </span>
+                    <span class="al-badge"><span class="dot"></span>Inattivo</span>
                     {% endif %}
                 </div>
-                <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500">
-                    <span class="flex items-center gap-1.5"><i class="ph ph-envelope"></i> {{ client.user.email }}</span>
-                    {% if client.phone %}<span class="flex items-center gap-1.5"><i class="ph ph-phone"></i> {{ client.phone }}</span>{% endif %}
-                    {% if client.primary_goal %}<span class="flex items-center gap-1.5"><i class="ph ph-target"></i> {{ client.primary_goal }}</span>{% endif %}
-                    <span class="flex items-center gap-1.5 text-slate-400"><i class="ph ph-calendar-plus"></i> Cliente dal {{ relationship.start_date|date:"d M Y" }}</span>
+                <div class="flex flex-wrap items-center gap-4 al-small">
+                    <span class="flex items-center gap-1.5"><i class="ph ph-envelope text-bronze"></i>{{ client.user.email }}</span>
+                    {% if client.phone %}<span class="flex items-center gap-1.5"><i class="ph ph-phone text-bronze"></i>{{ client.phone }}</span>{% endif %}
+                    {% if client.primary_goal %}<span class="flex items-center gap-1.5"><i class="ph ph-target text-bronze"></i>{{ client.primary_goal }}</span>{% endif %}
+                    <span class="flex items-center gap-1.5"><i class="ph ph-calendar-plus text-bronze"></i>Cliente dal {{ relationship.start_date|date:"d M Y" }}</span>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
             <div class="flex flex-wrap gap-2 shrink-0">
-                <a href="{% url 'agenda_dashboard' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
-                    <i class="ph ph-calendar-plus"></i> Prenota
+                <a href="{% url 'agenda_dashboard' %}" class="al-btn al-btn-sm al-btn-ghost">
+                    <i class="ph ph-calendar-plus text-xs"></i><span>Prenota</span>
                 </a>
-                <a href="{% url 'check_create' %}?client_id={{ client.id }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
-                    <i class="ph ph-clipboard-text"></i> Compila Check
+                <a href="{% url 'check_create' %}?client_id={{ client.id }}" class="al-btn al-btn-sm al-btn-ghost">
+                    <i class="ph ph-clipboard-text text-xs"></i><span>Compila Check</span>
                 </a>
-                <a href="{% url 'allenamenti_create' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                    <i class="ph ph-plus"></i> Assegna Piano
+                <a href="{% url 'allenamenti_create' %}" class="al-btn al-btn-sm al-btn-bronze">
+                    <i class="ph ph-plus text-xs"></i><span>Assegna Piano</span>
                 </a>
             </div>
         </div>
 
-        <!-- Extra stats row -->
         {% if client.height_cm or client.activity_level or client.medical_notes_summary %}
-        <div class="mt-5 pt-5 border-t border-slate-100 flex flex-wrap gap-5 text-sm">
+        <div class="mt-6 pt-5 border-t flex flex-wrap gap-8" style="border-color: var(--al-rule);">
             {% if client.height_cm %}
             <div>
-                <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-0.5">Altezza</p>
-                <p class="text-slate-700 font-medium">{{ client.height_cm }} cm</p>
+                <p class="al-tag mb-1">Altezza</p>
+                <p class="font-mono text-ink font-medium">{{ client.height_cm }} cm</p>
             </div>
             {% endif %}
             {% if client.activity_level %}
             <div>
-                <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-0.5">Livello Attività</p>
-                <p class="text-slate-700 font-medium">{{ client.activity_level }}</p>
+                <p class="al-tag mb-1">Livello Attività</p>
+                <p class="text-ink font-medium">{{ client.activity_level }}</p>
             </div>
             {% endif %}
             {% if client.medical_notes_summary %}
             <div class="flex-1 min-w-0">
-                <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-0.5">Note Mediche</p>
-                <p class="text-slate-700 truncate max-w-xs">{{ client.medical_notes_summary }}</p>
+                <p class="al-tag mb-1">Note Mediche</p>
+                <p class="al-body truncate max-w-xs">{{ client.medical_notes_summary }}</p>
             </div>
             {% endif %}
         </div>
         {% endif %}
     </div>
 
-    <!-- Status Cards -->
+    <!-- Status Cards (3 col) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-        <!-- Allenamento Attivo -->
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+        <div class="al-card al-reveal" style="--d:0ms;">
             <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <i class="ph ph-barbell text-lg"></i>
+                <div class="flex items-center gap-3">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-info-bg); color: var(--al-aegean);">
+                        <i class="ph ph-barbell"></i>
                     </div>
-                    <span class="text-sm font-semibold text-slate-700">Allenamento</span>
+                    <span class="al-eyebrow" style="color: var(--al-ink-mute);">Allenamento</span>
                 </div>
-                <a href="{% url 'allenamenti_list' %}" class="text-xs text-accent hover:underline">Tutti</a>
+                <a href="{% url 'allenamenti_list' %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Tutti</a>
             </div>
             {% if active_workout %}
-            <p class="font-semibold text-slate-900 truncate">{{ active_workout.workout_plan.title }}</p>
-            <p class="text-xs text-slate-400 mt-0.5">{{ active_workout.workout_plan.level|default:"" }} {% if active_workout.workout_plan.goal %}· {{ active_workout.workout_plan.goal }}{% endif %}</p>
+            <p class="al-h-3 truncate">{{ active_workout.workout_plan.title }}</p>
+            <p class="al-tag mt-1">{{ active_workout.workout_plan.level|default:"" }} {% if active_workout.workout_plan.goal %}· {{ active_workout.workout_plan.goal }}{% endif %}</p>
             {% if active_workout.start_date %}
-            <p class="text-xs text-slate-400 mt-2">Iniziato il {{ active_workout.start_date|date:"d M Y" }}</p>
+            <p class="al-small mt-3">Iniziato il {{ active_workout.start_date|date:"d M Y" }}</p>
             {% endif %}
             {% else %}
-            <p class="text-sm text-slate-400">Nessun piano attivo</p>
-            <a href="{% url 'allenamenti_create' %}" class="mt-3 inline-flex items-center gap-1 text-xs text-accent hover:underline font-medium">
-                <i class="ph ph-plus-circle"></i> Assegna piano
+            <p class="al-body">Nessun piano attivo</p>
+            <a href="{% url 'allenamenti_create' %}" class="al-link al-link-bronze inline-flex items-center gap-1 mt-3 text-[11px] uppercase tracking-widest">
+                <i class="ph ph-plus-circle text-xs"></i>Assegna piano
             </a>
             {% endif %}
         </div>
 
-        <!-- Piano Nutrizionale -->
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+        <div class="al-card al-reveal" style="--d:60ms;">
             <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <i class="ph ph-apple-logo text-lg"></i>
+                <div class="flex items-center gap-3">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-success-bg); color: var(--al-success);">
+                        <i class="ph ph-leaf"></i>
                     </div>
-                    <span class="text-sm font-semibold text-slate-700">Nutrizione</span>
+                    <span class="al-eyebrow" style="color: var(--al-ink-mute);">Nutrizione</span>
                 </div>
-                <a href="{% url 'nutrizione_piani' %}" class="text-xs text-accent hover:underline">Tutti</a>
+                <a href="{% url 'nutrizione_piani' %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Tutti</a>
             </div>
             {% if active_nutrition %}
-            <p class="font-semibold text-slate-900 truncate">{{ active_nutrition.nutrition_plan.title }}</p>
+            <p class="al-h-3 truncate">{{ active_nutrition.nutrition_plan.title }}</p>
             {% with plan=active_nutrition.nutrition_plan %}
             {% if plan.daily_kcal %}
-            <p class="text-xs text-slate-400 mt-0.5">{{ plan.daily_kcal }} kcal/giorno</p>
-            <div class="mt-2 flex gap-2 text-xs">
-                {% if plan.protein_target_g %}<span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">P: {{ plan.protein_target_g }}g</span>{% endif %}
-                {% if plan.carb_target_g %}<span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">C: {{ plan.carb_target_g }}g</span>{% endif %}
-                {% if plan.fat_target_g %}<span class="bg-rose-50 text-rose-700 px-2 py-0.5 rounded-full">F: {{ plan.fat_target_g }}g</span>{% endif %}
+            <p class="al-tag mt-1">{{ plan.daily_kcal }} kcal/giorno</p>
+            <div class="mt-3 flex flex-wrap gap-1.5">
+                {% if plan.protein_target_g %}<span class="al-badge al-badge-aegean">P: {{ plan.protein_target_g }}g</span>{% endif %}
+                {% if plan.carb_target_g %}<span class="al-badge al-badge-warn">C: {{ plan.carb_target_g }}g</span>{% endif %}
+                {% if plan.fat_target_g %}<span class="al-badge al-badge-danger">F: {{ plan.fat_target_g }}g</span>{% endif %}
             </div>
             {% endif %}
             {% endwith %}
             {% else %}
-            <p class="text-sm text-slate-400">Nessun piano attivo</p>
-            <a href="{% url 'nutrizione_piani' %}" class="mt-3 inline-flex items-center gap-1 text-xs text-accent hover:underline font-medium">
-                <i class="ph ph-plus-circle"></i> Assegna piano
+            <p class="al-body">Nessun piano attivo</p>
+            <a href="{% url 'nutrizione_piani' %}" class="al-link al-link-bronze inline-flex items-center gap-1 mt-3 text-[11px] uppercase tracking-widest">
+                <i class="ph ph-plus-circle text-xs"></i>Assegna piano
             </a>
             {% endif %}
         </div>
 
-        <!-- Abbonamento -->
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+        <div class="al-card al-reveal" style="--d:120ms;">
             <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <i class="ph ph-credit-card text-lg"></i>
+                <div class="flex items-center gap-3">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: rgba(138,106,58,0.12); color: var(--al-bronze);">
+                        <i class="ph ph-credit-card"></i>
                     </div>
-                    <span class="text-sm font-semibold text-slate-700">Abbonamento</span>
+                    <span class="al-eyebrow" style="color: var(--al-ink-mute);">Abbonamento</span>
                 </div>
-                <a href="{% url 'abbonamenti_dashboard' %}" class="text-xs text-accent hover:underline">Tutti</a>
+                <a href="{% url 'abbonamenti_dashboard' %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Tutti</a>
             </div>
             {% if active_subscription %}
-            <p class="font-semibold text-slate-900 truncate">{{ active_subscription.subscription_plan.name }}</p>
-            <p class="text-xs text-slate-400 mt-0.5">{{ active_subscription.subscription_plan.plan_type }}</p>
-            <div class="mt-2 flex items-center justify-between">
-                <span class="text-lg font-bold text-slate-900">€{{ active_subscription.subscription_plan.price }}</span>
+            <p class="al-h-3 truncate">{{ active_subscription.subscription_plan.name }}</p>
+            <p class="al-tag mt-1">{{ active_subscription.subscription_plan.plan_type }}</p>
+            <div class="mt-3 flex items-baseline justify-between">
+                <span class="al-display" style="font-size: 26px;">€{{ active_subscription.subscription_plan.price }}</span>
                 {% if active_subscription.end_date %}
-                <span class="text-xs text-slate-400">Scade {{ active_subscription.end_date|date:"d M Y" }}</span>
+                <span class="al-tag">Scade {{ active_subscription.end_date|date:"d M Y" }}</span>
                 {% endif %}
             </div>
             {% else %}
-            <p class="text-sm text-slate-400">Nessun abbonamento attivo</p>
-            <a href="{% url 'abbonamenti_dashboard' %}" class="mt-3 inline-flex items-center gap-1 text-xs text-accent hover:underline font-medium">
-                <i class="ph ph-plus-circle"></i> Associa piano
+            <p class="al-body">Nessun abbonamento</p>
+            <a href="{% url 'abbonamenti_dashboard' %}" class="al-link al-link-bronze inline-flex items-center gap-1 mt-3 text-[11px] uppercase tracking-widest">
+                <i class="ph ph-plus-circle text-xs"></i>Associa piano
             </a>
             {% endif %}
         </div>
     </div>
 
-    <!-- Storico Cliente -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-6" x-data="{ tab: 'workouts' }">
-        <div class="px-6 py-4 border-b border-slate-100">
-            <h2 class="font-semibold text-slate-900 flex items-center gap-2">
-                <i class="ph ph-clock-counter-clockwise text-accent"></i> Storico
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Tutto quello che è stato assegnato o registrato per questo cliente.</p>
+    <!-- Storico tabbed -->
+    <div class="al-card al-card-flush" x-data="{ tab: 'workouts' }">
+        <div class="al-card-head">
+            <div>
+                <p class="al-eyebrow">Storico</p>
+                <h2 class="al-h-2 mt-1">Cronologia <span class="al-display-i">cliente</span></h2>
+            </div>
+            <i class="ph ph-clock-counter-clockwise text-bronze text-xl"></i>
         </div>
 
         <!-- Tabs -->
-        <div class="flex border-b border-slate-100 px-4 overflow-x-auto">
-            <button @click="tab='workouts'" :class="tab==='workouts'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Schede</button>
-            <button @click="tab='nutrition'" :class="tab==='nutrition'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Diete</button>
-            <button @click="tab='supplements'" :class="tab==='supplements'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Integratori</button>
-            <button @click="tab='checks'" :class="tab==='checks'?'border-accent text-accent':'border-transparent text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-3 text-sm font-semibold border-b-2 whitespace-nowrap">Check</button>
+        <div class="flex border-b px-4 overflow-x-auto" style="border-color: var(--al-rule); background: var(--al-marble-warm);">
+            <button @click="tab='workouts'" type="button"
+                    :class="tab==='workouts'?'border-bronze text-ink':'border-transparent text-ink-mute hover:text-ink'"
+                    class="px-4 py-3 border-b-2 transition-colors whitespace-nowrap"
+                    style="font-family: var(--al-sans); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500;">Schede</button>
+            <button @click="tab='nutrition'" type="button"
+                    :class="tab==='nutrition'?'border-bronze text-ink':'border-transparent text-ink-mute hover:text-ink'"
+                    class="px-4 py-3 border-b-2 transition-colors whitespace-nowrap"
+                    style="font-family: var(--al-sans); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500;">Diete</button>
+            <button @click="tab='supplements'" type="button"
+                    :class="tab==='supplements'?'border-bronze text-ink':'border-transparent text-ink-mute hover:text-ink'"
+                    class="px-4 py-3 border-b-2 transition-colors whitespace-nowrap"
+                    style="font-family: var(--al-sans); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500;">Integratori</button>
+            <button @click="tab='checks'" type="button"
+                    :class="tab==='checks'?'border-bronze text-ink':'border-transparent text-ink-mute hover:text-ink'"
+                    class="px-4 py-3 border-b-2 transition-colors whitespace-nowrap"
+                    style="font-family: var(--al-sans); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500;">Check</button>
         </div>
 
-        <!-- Tab: Schede -->
-        <div x-show="tab==='workouts'" class="divide-y divide-slate-50">
+        <!-- Schede -->
+        <div x-show="tab==='workouts'" class="divide-y" style="--tw-divide-opacity:1;">
             {% for a in workout_assignments %}
-            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-marble-warm transition-colors" style="border-bottom: 1px solid var(--al-rule-faint);">
                 <div class="min-w-0">
-                    <p class="text-sm font-semibold text-slate-800 truncate">{{ a.workout_plan.title }}</p>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                        Creato {{ a.created_at|date:"d M Y" }}
-                        {% if a.start_date %}· dal {{ a.start_date|date:"d M Y" }}{% endif %}
-                    </p>
+                    <p class="font-medium text-ink truncate">{{ a.workout_plan.title }}</p>
+                    <p class="al-small">Creato {{ a.created_at|date:"d M Y" }}{% if a.start_date %} · dal {{ a.start_date|date:"d M Y" }}{% endif %}</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     {% if a.status == 'ACTIVE' %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Attivo</span>
+                    <span class="al-badge al-badge-success">Attivo</span>
                     {% else %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ a.status }}</span>
+                    <span class="al-badge">{{ a.status }}</span>
                     {% endif %}
-                    <a href="{% url 'allenamenti_edit' a.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                    <a href="{% url 'allenamenti_edit' a.id %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Apri</a>
                 </div>
             </div>
             {% empty %}
-            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessuna scheda assegnata.</div>
+            <div class="al-empty" style="padding: 32px;">
+                <p class="al-tag">Nessuna scheda assegnata.</p>
+            </div>
             {% endfor %}
         </div>
 
-        <!-- Tab: Diete -->
-        <div x-show="tab==='nutrition'" class="divide-y divide-slate-50" x-cloak>
+        <!-- Diete -->
+        <div x-show="tab==='nutrition'" x-cloak>
             {% for a in nutrition_assignments %}
-            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-marble-warm transition-colors" style="border-bottom: 1px solid var(--al-rule-faint);">
                 <div class="min-w-0">
-                    <p class="text-sm font-semibold text-slate-800 truncate">{{ a.nutrition_plan.title }}</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Creato {{ a.created_at|date:"d M Y" }}</p>
+                    <p class="font-medium text-ink truncate">{{ a.nutrition_plan.title }}</p>
+                    <p class="al-small">Creato {{ a.created_at|date:"d M Y" }}</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     {% if a.status == 'ACTIVE' %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Attivo</span>
+                    <span class="al-badge al-badge-success">Attivo</span>
                     {% else %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ a.status }}</span>
+                    <span class="al-badge">{{ a.status }}</span>
                     {% endif %}
-                    <a href="{% url 'nutrizione_piano_detail' a.nutrition_plan.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                    <a href="{% url 'nutrizione_piano_detail' a.nutrition_plan.id %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Apri</a>
                 </div>
             </div>
             {% empty %}
-            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessuna dieta assegnata.</div>
+            <div class="al-empty" style="padding: 32px;"><p class="al-tag">Nessuna dieta assegnata.</p></div>
             {% endfor %}
         </div>
 
-        <!-- Tab: Integratori -->
-        <div x-show="tab==='supplements'" class="divide-y divide-slate-50" x-cloak>
+        <!-- Integratori -->
+        <div x-show="tab==='supplements'" x-cloak>
             {% for a in supplement_assignments %}
-            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-marble-warm transition-colors" style="border-bottom: 1px solid var(--al-rule-faint);">
                 <div class="min-w-0">
-                    <p class="text-sm font-semibold text-slate-800 truncate">{{ a.sheet.title }}</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Assegnato {{ a.assigned_at|date:"d M Y" }}</p>
+                    <p class="font-medium text-ink truncate">{{ a.sheet.title }}</p>
+                    <p class="al-small">Assegnato {{ a.assigned_at|date:"d M Y" }}</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     {% if a.status == 'ACTIVE' %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Attivo</span>
+                    <span class="al-badge al-badge-success">Attivo</span>
                     {% else %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ a.status }}</span>
+                    <span class="al-badge">{{ a.status }}</span>
                     {% endif %}
-                    <a href="{% url 'nutrizione_integratori_detail' a.sheet.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                    <a href="{% url 'nutrizione_integratori_detail' a.sheet.id %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Apri</a>
                 </div>
             </div>
             {% empty %}
-            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessuna scheda integratori assegnata.</div>
+            <div class="al-empty" style="padding: 32px;"><p class="al-tag">Nessuna scheda integratori assegnata.</p></div>
             {% endfor %}
         </div>
 
-        <!-- Tab: Check -->
-        <div x-show="tab==='checks'" class="divide-y divide-slate-50" x-cloak>
+        <!-- Check -->
+        <div x-show="tab==='checks'" x-cloak>
             {% for c in all_checks %}
-            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+            <div class="px-6 py-3 flex items-center justify-between gap-4 hover:bg-marble-warm transition-colors" style="border-bottom: 1px solid var(--al-rule-faint);">
                 <div class="min-w-0">
-                    <p class="text-sm font-semibold text-slate-800 truncate">{{ c.questionnaire_template.title }}</p>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                        {{ c.submitted_at|date:"d M Y"|default:c.created_at|date:"d M Y" }}
-                        {% if c.weight_kg %}· {{ c.weight_kg }} kg{% endif %}
-                    </p>
+                    <p class="font-medium text-ink truncate">{{ c.questionnaire_template.title }}</p>
+                    <p class="al-small">{{ c.submitted_at|date:"d M Y"|default:c.created_at|date:"d M Y" }}{% if c.weight_kg %} · {{ c.weight_kg }} kg{% endif %}</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     {% if c.status == 'REVIEWED' %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Revisionato</span>
+                    <span class="al-badge al-badge-success">Revisionato</span>
                     {% else %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200">Da revisionare</span>
+                    <span class="al-badge al-badge-warn">Da revisionare</span>
                     {% endif %}
-                    <a href="{% url 'check_detail' c.id %}" class="text-xs text-accent hover:underline">Apri</a>
+                    <a href="{% url 'check_detail' c.id %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Apri</a>
                 </div>
             </div>
             {% empty %}
-            <div class="px-6 py-8 text-center text-sm text-slate-400">Nessun check registrato.</div>
+            <div class="al-empty" style="padding: 32px;"><p class="al-tag">Nessun check registrato.</p></div>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Recent Checks -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 class="font-semibold text-slate-900 flex items-center gap-2">
-                <i class="ph ph-chart-line-up text-accent"></i> Check Progressi Recenti
-            </h2>
-            <a href="{% url 'check_dashboard' %}" class="text-xs text-accent hover:underline">Vedi tutti</a>
+    <!-- Recent Checks table -->
+    <div class="al-card al-card-flush">
+        <div class="al-card-head">
+            <div>
+                <p class="al-eyebrow">Progressi</p>
+                <h2 class="al-h-2 mt-1">Check <span class="al-display-i">recenti</span></h2>
+            </div>
+            <a href="{% url 'check_dashboard' %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">Vedi tutti</a>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-sm">
+            <table class="al-table">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-                        <th class="px-6 py-3 font-semibold">Data</th>
-                        <th class="px-6 py-3 font-semibold">Tipo</th>
-                        <th class="px-6 py-3 font-semibold">Peso</th>
-                        <th class="px-6 py-3 font-semibold">Stato</th>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Peso</th>
+                        <th>Stato</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     {% for check in recent_checks %}
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-3 font-medium text-slate-900">
-                            {{ check.submitted_at|date:"d M Y"|default:check.created_at|date:"d M Y" }}
-                        </td>
-                        <td class="px-6 py-3 text-slate-600">
-                            {{ check.questionnaire_template.title }}
-                        </td>
-                        <td class="px-6 py-3">
+                    <tr>
+                        <td><span class="al-table-num">{{ check.submitted_at|date:"d M Y"|default:check.created_at|date:"d M Y" }}</span></td>
+                        <td>{{ check.questionnaire_template.title }}</td>
+                        <td>
                             {% if check.weight_kg %}
-                            <span class="font-medium text-slate-800">{{ check.weight_kg }} kg</span>
+                            <span class="font-mono font-medium text-ink">{{ check.weight_kg }} kg</span>
                             {% else %}
-                            <span class="text-slate-400">—</span>
+                            <span class="al-tag">—</span>
                             {% endif %}
                         </td>
-                        <td class="px-6 py-3">
+                        <td>
                             {% if check.status == 'REVIEWED' %}
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <i class="ph-bold ph-check"></i> Revisionato
-                            </span>
+                            <span class="al-badge al-badge-success"><i class="ph-bold ph-check"></i>Revisionato</span>
                             {% else %}
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Da revisionare
-                            </span>
+                            <span class="al-badge al-badge-warn"><span class="dot"></span>Da revisionare</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-slate-400">
-                            Nessun check registrato per questo cliente.
+                        <td colspan="4">
+                            <div class="al-empty">
+                                <p class="al-tag">Nessun check registrato.</p>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -346,6 +336,5 @@
             </table>
         </div>
     </div>
-
 </div>
 {% endblock %}

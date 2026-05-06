@@ -1,274 +1,250 @@
 {% extends 'base.html' %}
 
+{% block title %}Impostazioni{% endblock %}
+
 {% block content %}
-<div class="flex-1 w-full max-w-7xl mx-auto" x-data="{ activeTab: '{{ active_tab|default:"profilo" }}' }">
+<div class="max-w-7xl mx-auto" x-data="{ activeTab: '{{ active_tab|default:"profilo" }}' }">
 
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Impostazioni</h1>
-        <p class="text-sm text-slate-500 mt-1">Gestisci il tuo profilo, le credenziali e le preferenze di piattaforma.</p>
+        <p class="al-eyebrow mb-3">Studio &middot; Impostazioni</p>
+        <h1 class="al-h-1">Account &amp; <span class="al-display-i">profilo</span></h1>
+        <p class="al-body mt-2">Gestisci le tue informazioni, credenziali e preferenze.</p>
+        <div class="al-rule-bronze mt-5"></div>
     </div>
 
-    <!-- Toast success -->
     {% if saved and not error %}
-    <div class="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-3 rounded-xl text-sm font-medium">
-        <i class="ph-fill ph-check-circle text-emerald-500 text-lg shrink-0"></i>
-        {% if saved == 'profilo' %}Profilo aggiornato con successo.
-        {% elif saved == 'sicurezza' %}Password aggiornata con successo.
-        {% else %}Impostazioni salvate.{% endif %}
+    <div class="al-toast is-success mb-6">
+        <i class="ph-fill ph-check-circle"></i>
+        <span>
+            {% if saved == 'profilo' %}Profilo aggiornato.
+            {% elif saved == 'sicurezza' %}Password aggiornata.
+            {% else %}Impostazioni salvate.{% endif %}
+        </span>
     </div>
     {% endif %}
 
-    <!-- Toast error -->
     {% if error %}
-    <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-3 rounded-xl text-sm font-medium">
-        <i class="ph-fill ph-warning-circle text-red-500 text-lg shrink-0"></i>
-        {{ error }}
+    <div class="al-toast is-danger mb-6">
+        <i class="ph-fill ph-warning-circle"></i>
+        <span>{{ error }}</span>
     </div>
     {% endif %}
 
-    <!-- Layout Container -->
-    <div class="flex flex-col md:flex-row gap-8">
+    <div class="flex flex-col md:flex-row gap-6">
 
-        <!-- Sidebar Navigation -->
-        <aside class="w-full md:w-56 flex-shrink-0">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-56 shrink-0">
             <nav class="flex flex-col space-y-1">
-                {% for tab, icon, label in tab_list|default:"" %}{% endfor %}
-                <button @click="activeTab = 'profilo'" :class="activeTab === 'profilo' ? 'bg-accent/10 text-accent font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="flex items-center px-4 py-3 rounded-lg text-sm transition-colors text-left w-full group">
-                    <i class="ph ph-user-circle text-lg mr-3"></i>{% if is_coach %}Profilo Trainer{% else %}Il mio profilo{% endif %}
+                <button @click="activeTab = 'profilo'" type="button"
+                        :class="activeTab === 'profilo' ? 'border-bronze text-ink bg-marble-warm' : 'border-transparent text-ink-mute hover:text-ink hover:bg-marble'"
+                        class="flex items-center px-4 py-3 transition-colors text-left w-full border-l-2"
+                        style="font-size: 13px; font-weight: 500;">
+                    <i class="ph ph-user-circle text-base mr-3"></i>{% if is_coach %}Profilo Trainer{% else %}Il mio profilo{% endif %}
                 </button>
-                <button @click="activeTab = 'sicurezza'" :class="activeTab === 'sicurezza' ? 'bg-accent/10 text-accent font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="flex items-center px-4 py-3 rounded-lg text-sm transition-colors text-left w-full group">
-                    <i class="ph ph-shield-check text-lg mr-3"></i>Sicurezza
+                <button @click="activeTab = 'sicurezza'" type="button"
+                        :class="activeTab === 'sicurezza' ? 'border-bronze text-ink bg-marble-warm' : 'border-transparent text-ink-mute hover:text-ink hover:bg-marble'"
+                        class="flex items-center px-4 py-3 transition-colors text-left w-full border-l-2"
+                        style="font-size: 13px; font-weight: 500;">
+                    <i class="ph ph-shield-check text-base mr-3"></i>Sicurezza
                 </button>
-                <div class="pt-2 mt-2 border-t border-slate-100">
-                    <p class="px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">In arrivo</p>
-                    <button disabled class="flex items-center px-4 py-3 rounded-lg text-sm text-slate-400 cursor-not-allowed w-full text-left">
-                        <i class="ph ph-paint-brush text-lg mr-3"></i>Branding
+
+                <div class="pt-3 mt-3 border-t" style="border-color: var(--al-rule);">
+                    <p class="al-tag px-4 mb-2">In arrivo</p>
+                    <button disabled type="button" class="flex items-center px-4 py-3 text-ink-line cursor-not-allowed w-full text-left text-[13px]">
+                        <i class="ph ph-paint-brush text-base mr-3"></i>Branding
                     </button>
-                    <button disabled class="flex items-center px-4 py-3 rounded-lg text-sm text-slate-400 cursor-not-allowed w-full text-left">
-                        <i class="ph ph-bell text-lg mr-3"></i>Notifiche
+                    <button disabled type="button" class="flex items-center px-4 py-3 text-ink-line cursor-not-allowed w-full text-left text-[13px]">
+                        <i class="ph ph-bell text-base mr-3"></i>Notifiche
                     </button>
-                    <button disabled class="flex items-center px-4 py-3 rounded-lg text-sm text-slate-400 cursor-not-allowed w-full text-left">
-                        <i class="ph ph-plugs text-lg mr-3"></i>Integrazioni
+                    <button disabled type="button" class="flex items-center px-4 py-3 text-ink-line cursor-not-allowed w-full text-left text-[13px]">
+                        <i class="ph ph-plugs text-base mr-3"></i>Integrazioni
                     </button>
                 </div>
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[500px]">
+        <!-- Main -->
+        <div class="flex-1 al-card al-card-flush min-h-[500px]">
 
-            <!-- ====== PROFILO ====== -->
+            <!-- Profilo -->
             <div x-show="activeTab === 'profilo'" class="p-6 md:p-8" x-cloak>
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-slate-900">Il tuo Profilo</h2>
-                    <p class="text-sm text-slate-500 mt-0.5">
-                        {% if is_coach %}Queste informazioni sono visibili ai tuoi clienti nella directory e nella loro app.
-                        {% else %}Aggiorna i tuoi dati personali.{% endif %}
-                    </p>
+                <div class="al-section-head">
+                    <p class="al-eyebrow" style="color: var(--al-ink-mute);">01</p>
+                    <h2 class="al-h-2 mt-1">Profilo</h2>
+                    <p class="al-small mt-2">{% if is_coach %}Visibile ai tuoi clienti nella directory.{% else %}Aggiorna i tuoi dati personali.{% endif %}</p>
                 </div>
 
-                <form method="POST" action="{% url 'impostazioni_dashboard' %}" enctype="multipart/form-data">
+                <form method="POST" action="{% url 'impostazioni_dashboard' %}" enctype="multipart/form-data" class="space-y-6">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="profilo">
 
-                    <div class="space-y-6">
-
-                        <!-- Dati anagrafici (comuni) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Nome <span class="text-red-500">*</span></label>
-                                <input type="text" name="first_name"
-                                       value="{% if is_coach %}{{ coach.first_name }}{% else %}{{ client.first_name }}{% endif %}" required
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Cognome <span class="text-red-500">*</span></label>
-                                <input type="text" name="last_name"
-                                       value="{% if is_coach %}{{ coach.last_name }}{% else %}{{ client.last_name }}{% endif %}" required
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Telefono</label>
-                                <input type="tel" name="phone"
-                                       value="{% if is_coach %}{{ coach.phone|default:'' }}{% else %}{{ client.phone|default:'' }}{% endif %}"
-                                       placeholder="+39 333 000 0000"
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            {% if is_coach %}
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Città</label>
-                                <input type="text" name="city" value="{{ coach.city|default:'' }}"
-                                       placeholder="Es. Milano"
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            {% else %}
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Data di nascita</label>
-                                <input type="date" name="birth_date" value="{{ client.birth_date|date:'Y-m-d'|default:'' }}"
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="al-label">Nome *</label>
+                            <input type="text" name="first_name" required
+                                   value="{% if is_coach %}{{ coach.first_name }}{% else %}{{ client.first_name }}{% endif %}" class="al-input">
                         </div>
-
+                        <div>
+                            <label class="al-label">Cognome *</label>
+                            <input type="text" name="last_name" required
+                                   value="{% if is_coach %}{{ coach.last_name }}{% else %}{{ client.last_name }}{% endif %}" class="al-input">
+                        </div>
+                        <div>
+                            <label class="al-label">Telefono</label>
+                            <input type="tel" name="phone" placeholder="+39 333 000 0000"
+                                   value="{% if is_coach %}{{ coach.phone|default:'' }}{% else %}{{ client.phone|default:'' }}{% endif %}" class="al-input">
+                        </div>
                         {% if is_coach %}
-                        <hr class="border-slate-100">
-
-                        <!-- Foto profilo -->
                         <div>
-                            <p class="text-sm font-medium text-slate-700 mb-3">Foto profilo</p>
-                            <div class="flex items-center gap-5">
-                                <div class="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
-                                    {% if coach.profile_image %}
-                                    <img src="{{ coach.profile_image.url }}" alt="foto profilo" class="w-full h-full object-cover">
-                                    {% elif coach.profile_image_url %}
-                                    <img src="{{ coach.profile_image_url }}" alt="foto profilo" class="w-full h-full object-cover">
-                                    {% else %}
-                                    <i class="ph ph-user text-3xl text-slate-400"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="flex-1">
-                                    <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors" for="profile_image_input">
-                                        <i class="ph ph-upload-simple"></i> Carica foto
-                                    </label>
-                                    <input type="file" id="profile_image_input" name="profile_image" accept="image/*" class="hidden">
-                                    <p class="text-xs text-slate-400 mt-1.5">JPG, PNG o WebP. Max 5 MB.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="border-slate-100">
-
-                        <!-- Professionale (coach only) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Specializzazione</label>
-                                <input type="text" name="specialization" value="{{ coach.specialization|default:'' }}"
-                                       placeholder="Es. Strength & Conditioning"
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Anni di Esperienza</label>
-                                <input type="number" name="years_experience" value="{{ coach.years_experience|default:'' }}"
-                                       min="0" max="60" placeholder="Es. 8"
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Certificazioni</label>
-                                <input type="text" name="certifications" value="{{ coach.certifications|default:'' }}"
-                                       placeholder="Es. NASM-CPT, ISSA-CES"
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                                <p class="text-xs text-slate-400 mt-1">Separale con una virgola.</p>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Bio & Filosofia</label>
-                                <textarea name="bio" rows="4" placeholder="Racconta ai tuoi potenziali clienti chi sei e come lavori..."
-                                          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all resize-none">{{ coach.bio|default:'' }}</textarea>
-                            </div>
-                        </div>
-
-                        <hr class="border-slate-100">
-
-                        <!-- Video professionali -->
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Video professionali</label>
-                            <textarea name="professional_videos" rows="3"
-                                      placeholder="Inserisci un URL per riga (YouTube, Vimeo...)"
-                                      class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all resize-none">{{ coach.professional_videos|default:'' }}</textarea>
-                            <p class="text-xs text-slate-400 mt-1">Un URL per riga. Max 3 video.</p>
-                        </div>
-
-                        <hr class="border-slate-100">
-
-                        <!-- Social links -->
-                        <div>
-                            <p class="text-sm font-medium text-slate-700 mb-3">Profili social</p>
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 text-center text-pink-500"><i class="ph ph-instagram-logo text-xl"></i></span>
-                                    <input type="url" name="social_instagram" value="{{ coach.social_instagram|default:'' }}"
-                                           placeholder="https://instagram.com/..."
-                                           class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 text-center text-red-500"><i class="ph ph-youtube-logo text-xl"></i></span>
-                                    <input type="url" name="social_youtube" value="{{ coach.social_youtube|default:'' }}"
-                                           placeholder="https://youtube.com/@..."
-                                           class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 text-center text-slate-800"><i class="ph ph-tiktok-logo text-xl"></i></span>
-                                    <input type="url" name="social_tiktok" value="{{ coach.social_tiktok|default:'' }}"
-                                           placeholder="https://tiktok.com/@..."
-                                           class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 text-center text-blue-600"><i class="ph ph-facebook-logo text-xl"></i></span>
-                                    <input type="url" name="social_facebook" value="{{ coach.social_facebook|default:'' }}"
-                                           placeholder="https://facebook.com/..."
-                                           class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="w-8 text-center text-accent"><i class="ph ph-globe text-xl"></i></span>
-                                    <input type="url" name="social_website" value="{{ coach.social_website|default:'' }}"
-                                           placeholder="https://iltuosito.it"
-                                           class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                                </div>
-                            </div>
+                            <label class="al-label">Città</label>
+                            <input type="text" name="city" value="{{ coach.city|default:'' }}" placeholder="Es. Milano" class="al-input">
                         </div>
                         {% else %}
-                        <!-- Dati fisici (client only) -->
-                        <hr class="border-slate-100">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Sesso</label>
-                                <select name="gender"
-                                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                                    <option value="">Seleziona...</option>
-                                    <option {% if client.gender == 'M' %}selected{% endif %} value="M">Maschio</option>
-                                    <option {% if client.gender == 'F' %}selected{% endif %} value="F">Femmina</option>
-                                    <option {% if client.gender == 'Altro' %}selected{% endif %} value="Altro">Altro</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Altezza (cm)</label>
-                                <input type="number" name="height_cm" value="{{ client.height_cm|default:'' }}"
-                                       min="100" max="250" placeholder="Es. 175"
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Obiettivo principale</label>
-                                <input type="text" name="primary_goal" value="{{ client.primary_goal|default:'' }}"
-                                       placeholder="Es. Perdere peso, costruire massa muscolare..."
-                                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                            </div>
+                        <div>
+                            <label class="al-label">Data di nascita</label>
+                            <input type="date" name="birth_date" value="{{ client.birth_date|date:'Y-m-d'|default:'' }}" class="al-input">
                         </div>
                         {% endif %}
+                    </div>
 
-                        <!-- Email account (read-only) -->
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                            <i class="ph ph-envelope text-slate-400"></i>
-                            <div>
-                                <p class="text-xs text-slate-500 font-medium">Email account (non modificabile qui)</p>
-                                <p class="text-sm text-slate-700 font-semibold">{{ auth_user.email }}</p>
+                    {% if is_coach %}
+                    <div class="al-divider"></div>
+
+                    <!-- Foto profilo -->
+                    <div>
+                        <p class="al-label">Foto profilo</p>
+                        <div class="flex items-center gap-5">
+                            <div class="w-20 h-20 flex items-center justify-center overflow-hidden shrink-0"
+                                 style="background: var(--al-marble); border: 1px solid var(--al-rule); border-radius: var(--al-r-sm);">
+                                {% if coach.profile_image %}
+                                <img src="{{ coach.profile_image.url }}" alt="" class="w-full h-full object-cover">
+                                {% elif coach.profile_image_url %}
+                                <img src="{{ coach.profile_image_url }}" alt="" class="w-full h-full object-cover">
+                                {% else %}
+                                <i class="ph ph-user text-3xl text-ink-line"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <label for="profile_image_input" class="al-btn al-btn-ghost cursor-pointer">
+                                    <i class="ph ph-upload-simple"></i><span>Carica foto</span>
+                                </label>
+                                <input type="file" id="profile_image_input" name="profile_image" accept="image/*" class="hidden">
+                                <span class="al-input-help">JPG, PNG o WebP. Max 5 MB.</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="flex justify-end pt-2 border-t border-slate-100">
-                            <button type="submit" class="px-5 py-2.5 bg-accent hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm">
-                                Salva modifiche
-                            </button>
+                    <div class="al-divider"></div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="al-label">Specializzazione</label>
+                            <input type="text" name="specialization" value="{{ coach.specialization|default:'' }}"
+                                   placeholder="Es. Strength &amp; Conditioning" class="al-input">
                         </div>
+                        <div>
+                            <label class="al-label">Anni di Esperienza</label>
+                            <input type="number" name="years_experience" value="{{ coach.years_experience|default:'' }}"
+                                   min="0" max="60" placeholder="Es. 8" class="al-input">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="al-label">Certificazioni</label>
+                            <input type="text" name="certifications" value="{{ coach.certifications|default:'' }}"
+                                   placeholder="Es. NASM-CPT, ISSA-CES" class="al-input">
+                            <span class="al-input-help">Separale con una virgola.</span>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="al-label">Bio &amp; Filosofia</label>
+                            <textarea name="bio" rows="4" placeholder="Racconta chi sei e come lavori..."
+                                      class="al-textarea">{{ coach.bio|default:'' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="al-divider"></div>
+
+                    <div>
+                        <label class="al-label">Video professionali</label>
+                        <textarea name="professional_videos" rows="3" placeholder="Un URL per riga (YouTube, Vimeo)..."
+                                  class="al-textarea">{{ coach.professional_videos|default:'' }}</textarea>
+                        <span class="al-input-help">Max 3 video.</span>
+                    </div>
+
+                    <div class="al-divider"></div>
+
+                    <div>
+                        <p class="al-label">Profili social</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 flex items-center justify-center" style="background: var(--al-marble-warm); border: 1px solid var(--al-rule); border-radius: var(--al-r-sm);"><i class="ph ph-instagram-logo text-base text-ink-soft"></i></span>
+                                <input type="url" name="social_instagram" value="{{ coach.social_instagram|default:'' }}" placeholder="https://instagram.com/..." class="al-input flex-1">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 flex items-center justify-center" style="background: var(--al-marble-warm); border: 1px solid var(--al-rule); border-radius: var(--al-r-sm);"><i class="ph ph-youtube-logo text-base text-ink-soft"></i></span>
+                                <input type="url" name="social_youtube" value="{{ coach.social_youtube|default:'' }}" placeholder="https://youtube.com/@..." class="al-input flex-1">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 flex items-center justify-center" style="background: var(--al-marble-warm); border: 1px solid var(--al-rule); border-radius: var(--al-r-sm);"><i class="ph ph-tiktok-logo text-base text-ink-soft"></i></span>
+                                <input type="url" name="social_tiktok" value="{{ coach.social_tiktok|default:'' }}" placeholder="https://tiktok.com/@..." class="al-input flex-1">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 flex items-center justify-center" style="background: var(--al-marble-warm); border: 1px solid var(--al-rule); border-radius: var(--al-r-sm);"><i class="ph ph-facebook-logo text-base text-ink-soft"></i></span>
+                                <input type="url" name="social_facebook" value="{{ coach.social_facebook|default:'' }}" placeholder="https://facebook.com/..." class="al-input flex-1">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 flex items-center justify-center" style="background: var(--al-marble-warm); border: 1px solid var(--al-rule); border-radius: var(--al-r-sm);"><i class="ph ph-globe text-base text-bronze"></i></span>
+                                <input type="url" name="social_website" value="{{ coach.social_website|default:'' }}" placeholder="https://iltuosito.it" class="al-input flex-1">
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="al-divider"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="al-label">Sesso</label>
+                            <select name="gender" class="al-select">
+                                <option value="">Seleziona...</option>
+                                <option {% if client.gender == 'M' %}selected{% endif %} value="M">Maschio</option>
+                                <option {% if client.gender == 'F' %}selected{% endif %} value="F">Femmina</option>
+                                <option {% if client.gender == 'Altro' %}selected{% endif %} value="Altro">Altro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="al-label">Altezza (cm)</label>
+                            <input type="number" name="height_cm" value="{{ client.height_cm|default:'' }}"
+                                   min="100" max="250" placeholder="Es. 175" class="al-input">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="al-label">Obiettivo principale</label>
+                            <input type="text" name="primary_goal" value="{{ client.primary_goal|default:'' }}"
+                                   placeholder="Es. Perdere peso, costruire massa..." class="al-input">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Email read-only -->
+                    <div class="flex items-center gap-3 px-4 py-3" style="background: var(--al-marble-warm); border: 1px solid var(--al-rule); border-radius: var(--al-r-sm);">
+                        <i class="ph ph-envelope text-bronze"></i>
+                        <div>
+                            <p class="al-tag mb-0.5">Email account</p>
+                            <p class="font-mono text-ink font-medium text-[13px]">{{ auth_user.email }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2 border-t" style="border-color: var(--al-rule);">
+                        <button type="submit" class="al-btn al-btn-bronze">
+                            <i class="ph ph-floppy-disk text-sm"></i><span>Salva modifiche</span>
+                        </button>
                     </div>
                 </form>
             </div>
 
-
-            <!-- ====== SICUREZZA ====== -->
+            <!-- Sicurezza -->
             <div x-show="activeTab === 'sicurezza'" class="p-6 md:p-8" x-cloak>
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-slate-900">Sicurezza Account</h2>
-                    <p class="text-sm text-slate-500 mt-0.5">Aggiorna la tua password di accesso alla piattaforma.</p>
+                <div class="al-section-head">
+                    <p class="al-eyebrow" style="color: var(--al-ink-mute);">02</p>
+                    <h2 class="al-h-2 mt-1">Sicurezza Account</h2>
+                    <p class="al-small mt-2">Aggiorna la tua password di accesso.</p>
                 </div>
 
                 <form method="POST" action="{% url 'impostazioni_dashboard' %}#sicurezza" class="max-w-md space-y-5">
@@ -276,30 +252,26 @@
                     <input type="hidden" name="action" value="sicurezza">
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Password Attuale <span class="text-red-500">*</span></label>
-                        <input type="password" name="current_password" required autocomplete="current-password"
-                               class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
+                        <label class="al-label">Password Attuale *</label>
+                        <input type="password" name="current_password" required autocomplete="current-password" class="al-input">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Nuova Password <span class="text-red-500">*</span></label>
-                        <input type="password" name="new_password" required minlength="8" autocomplete="new-password"
-                               class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                        <p class="text-xs text-slate-400 mt-1">Minimo 8 caratteri.</p>
+                        <label class="al-label">Nuova Password *</label>
+                        <input type="password" name="new_password" required minlength="8" autocomplete="new-password" class="al-input">
+                        <span class="al-input-help">Minimo 8 caratteri.</span>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Conferma Nuova Password <span class="text-red-500">*</span></label>
-                        <input type="password" name="confirm_password" required minlength="8" autocomplete="new-password"
-                               class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
+                        <label class="al-label">Conferma Nuova Password *</label>
+                        <input type="password" name="confirm_password" required minlength="8" autocomplete="new-password" class="al-input">
                     </div>
 
-                    <div class="pt-2 border-t border-slate-100">
-                        <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm">
-                            Aggiorna Password
+                    <div class="pt-3 border-t" style="border-color: var(--al-rule);">
+                        <button type="submit" class="al-btn">
+                            <i class="ph ph-shield-check text-sm"></i><span>Aggiorna Password</span>
                         </button>
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 </div>

@@ -1,226 +1,270 @@
 {% extends 'base.html' %}
 
+{% block title %}Agenda{% endblock %}
+
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 
 <style>
-/* FullCalendar — TrainElite Pro Theme */
+/* FullCalendar — Athlynk theme overrides */
 :root {
-  --fc-border-color: #f1f5f9;
+  --fc-border-color: rgba(20,17,13,0.08);
   --fc-button-bg-color: transparent;
-  --fc-button-border-color: #e2e8f0;
-  --fc-button-text-color: #475569;
-  --fc-button-hover-bg-color: #f8fafc;
-  --fc-button-hover-border-color: #cbd5e1;
-  --fc-button-active-bg-color: #0f172a;
-  --fc-button-active-border-color: #0f172a;
-  --fc-today-bg-color: #f8faff;
+  --fc-button-border-color: rgba(20,17,13,0.32);
+  --fc-button-text-color: #2a2620;
+  --fc-button-hover-bg-color: #ece5d6;
+  --fc-button-hover-border-color: #8a6a3a;
+  --fc-button-active-bg-color: #14110d;
+  --fc-button-active-border-color: #14110d;
+  --fc-today-bg-color: rgba(138,106,58,0.06);
 }
-.fc { font-family: inherit; }
+.fc { font-family: var(--al-sans); color: var(--al-ink); }
 .fc-header-toolbar { margin-bottom: 1.5rem !important; }
-.fc .fc-toolbar-title { font-size: 1.125rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+.fc .fc-toolbar-title {
+  font-family: var(--al-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--al-ink);
+  letter-spacing: -0.01em;
+}
 .fc .fc-button-primary {
-  border-radius: 0.625rem;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  padding: 0.375rem 0.875rem;
-  transition: all 0.15s;
+  border-radius: var(--al-r-sm);
+  font-family: var(--al-sans);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  transition: all 0.3s var(--al-ease);
   outline: none !important;
   box-shadow: none !important;
 }
 .fc .fc-button-primary:not(:disabled):active,
 .fc .fc-button-primary:not(:disabled).fc-button-active {
-  background-color: #0f172a !important;
-  border-color: #0f172a !important;
-  color: #ffffff !important;
+  background-color: var(--al-ink) !important;
+  border-color: var(--al-ink) !important;
+  color: var(--al-parchment) !important;
 }
 .fc .fc-button-primary:hover:not(:disabled):not(.fc-button-active) {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
+  background-color: var(--al-marble) !important;
+  color: var(--al-ink) !important;
+  border-color: var(--al-bronze) !important;
 }
-.fc .fc-button-primary .fc-icon { font-size: 1em; }
-.fc-theme-standard .fc-scrollgrid { border-radius: 1rem; overflow: hidden; border: 1px solid #e2e8f0 !important; }
+.fc-theme-standard .fc-scrollgrid {
+  border-radius: var(--al-r-sm);
+  overflow: hidden;
+  border: 1px solid var(--al-rule) !important;
+}
 .fc-theme-standard th {
-  padding: 0.875rem 0;
-  font-size: 0.6875rem;
+  padding: 12px 0;
+  font-family: var(--al-sans);
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  font-weight: 700;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #f1f5f9 !important;
+  letter-spacing: 0.18em;
+  color: var(--al-ink-mute);
+  font-weight: 500;
+  background-color: var(--al-marble-warm);
+  border-bottom: 1px solid var(--al-rule-strong) !important;
 }
-.fc-theme-standard td, .fc-theme-standard th { border-color: #f1f5f9 !important; }
-.fc-daygrid-day-number { color: #475569; font-weight: 600; font-size: 0.8125rem; padding: 0.5rem 0.625rem !important; }
+.fc-theme-standard td, .fc-theme-standard th { border-color: var(--al-rule-faint) !important; }
+.fc-daygrid-day-number {
+  font-family: var(--al-mono);
+  color: var(--al-ink-soft);
+  font-weight: 500;
+  font-size: 12px;
+  padding: 0.5rem 0.625rem !important;
+}
 .fc-day-today .fc-daygrid-day-number {
-  background: #0f172a;
-  color: #ffffff;
-  border-radius: 0.375rem;
+  background: var(--al-ink);
+  color: var(--al-parchment);
   margin: 0.25rem;
   padding: 0.25rem 0.5rem !important;
 }
-.fc .fc-timegrid-slot-label-cushion { color: #94a3b8; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; }
+.fc .fc-timegrid-slot-label-cushion {
+  font-family: var(--al-mono);
+  color: var(--al-ink-line);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
 .fc .fc-timegrid-slot { height: 2.5rem; }
 .fc-v-event {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+  background: var(--al-aegean) !important;
   border: none !important;
-  border-radius: 0.5rem !important;
-  padding: 3px 8px;
-  box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+  border-radius: var(--al-r-sm) !important;
+  border-left: 3px solid var(--al-bronze) !important;
+  padding: 4px 8px;
+  box-shadow: 0 2px 8px rgba(28,74,82,0.18);
 }
-.fc-v-event .fc-event-main-frame { color: #ffffff; font-weight: 600; font-size: 0.75rem; }
-.fc-v-event .fc-event-title, .fc-v-event .fc-event-time { color: #ffffff; }
+.fc-v-event .fc-event-main-frame {
+  color: var(--al-parchment);
+  font-weight: 500;
+  font-size: 12px;
+}
+.fc-v-event .fc-event-title, .fc-v-event .fc-event-time {
+  color: var(--al-parchment);
+  font-family: var(--al-sans);
+}
 .fc-h-event {
-  background: linear-gradient(90deg, #1e3a8a, #2563eb) !important;
+  background: var(--al-aegean) !important;
   border: none !important;
-  border-radius: 0.375rem !important;
+  border-radius: var(--al-r-sm) !important;
+  border-left: 3px solid var(--al-bronze) !important;
   padding: 2px 6px;
-  box-shadow: 0 1px 4px rgba(37,99,235,0.2);
+  box-shadow: 0 1px 4px rgba(28,74,82,0.15);
 }
-.fc-h-event .fc-event-title { color: #ffffff; font-weight: 600; font-size: 0.75rem; }
-.fc-h-event .fc-event-time { color: rgba(255,255,255,0.8); }
+.fc-h-event .fc-event-title {
+  color: var(--al-parchment);
+  font-weight: 500;
+  font-size: 12px;
+}
+.fc-h-event .fc-event-time { color: rgba(244,239,228,0.8); font-family: var(--al-mono); }
 .fc-timegrid-event .fc-event-main { padding: 2px; }
-.fc-timegrid-now-indicator-line { border-color: #ef4444 !important; border-width: 2px !important; }
-.fc-timegrid-now-indicator-arrow { border-color: #ef4444 !important; }
+.fc-timegrid-now-indicator-line {
+  border-color: var(--al-bronze) !important;
+  border-width: 2px !important;
+}
+.fc-timegrid-now-indicator-arrow { border-color: var(--al-bronze) !important; }
 .fc-col-header-cell-cushion { text-decoration: none !important; }
 .fc-daygrid-day-number { text-decoration: none !important; }
 </style>
 
-<div class="flex-1 w-full max-w-7xl mx-auto h-full flex flex-col" x-data="agendaDashboard">
+<div class="max-w-7xl mx-auto h-full flex flex-col" x-data="agendaDashboard">
     {% csrf_token %}
 
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 flex-shrink-0">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 flex-shrink-0">
         <div>
-            <div class="flex items-center gap-2 text-xs text-slate-400 mb-2 font-medium uppercase tracking-wider">
-                <a href="{% url 'dashboard' %}" class="hover:text-slate-600 transition-colors">Home</a>
-                <i class="ph ph-caret-right text-[10px]"></i>
-                <span class="text-slate-600">Agenda</span>
-            </div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Agenda</h1>
-            <p class="text-sm text-slate-500 mt-0.5">Consulenze, check periodici e appuntamenti.</p>
+            <p class="al-eyebrow mb-3">Studio &middot; Agenda</p>
+            <h1 class="al-h-1">Calendario <span class="al-display-i">appuntamenti</span></h1>
+            <p class="al-body mt-2">Consulenze, check periodici e sessioni.</p>
+            <div class="al-rule-bronze mt-5"></div>
         </div>
         <div class="flex items-center gap-2">
-            <button @click="connectGoogle" class="h-9 bg-white border border-slate-200 text-slate-600 px-3.5 rounded-xl text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-2 shadow-sm">
-                <i class="ph ph-google-logo text-red-500 text-base"></i>
+            <button @click="connectGoogle" type="button" class="al-btn al-btn-ghost al-btn-sm">
+                <i class="ph ph-google-logo text-base"></i>
                 <span class="hidden sm:inline">Google</span>
             </button>
-            <button @click="connectApple" class="h-9 bg-white border border-slate-200 text-slate-600 px-3.5 rounded-xl text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-2 shadow-sm">
+            <button @click="connectApple" type="button" class="al-btn al-btn-ghost al-btn-sm">
                 <i class="ph ph-apple-logo text-base"></i>
                 <span class="hidden sm:inline">Apple</span>
             </button>
             {% if can_manage_agenda %}
-            <button @click="openCreateModal()" class="h-9 bg-slate-900 hover:bg-slate-800 text-white px-4 rounded-xl text-sm font-semibold transition-colors shadow-sm flex items-center gap-2">
-                <i class="ph ph-plus text-base"></i> Nuovo
+            <button @click="openCreateModal()" type="button" class="al-btn">
+                <i class="ph ph-plus text-sm"></i>
+                <span>Nuovo</span>
             </button>
             {% endif %}
         </div>
     </div>
 
-    <!-- Calendar card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
-        <div class="px-6 pt-6 pb-6">
+    <!-- Calendar -->
+    <div class="al-card al-card-flush mb-6">
+        <div class="p-6">
             <div id="calendar" class="w-full min-h-[600px]"></div>
         </div>
     </div>
 
-    <!-- Modal Dettaglio Appuntamento -->
-    <div x-show="showDetailModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;">
-        <div x-transition class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" @click.away="showDetailModal = false">
-            <!-- Header gradient -->
-            <div class="bg-gradient-to-r from-slate-900 to-slate-700 px-6 py-5 flex items-start justify-between">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1" x-text="selectedEvent?.extendedProps?.type"></p>
-                    <h3 class="font-bold text-xl text-white leading-tight" x-text="selectedEvent?.title"></h3>
+    <!-- Modal Dettaglio -->
+    <div x-show="showDetailModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="al-modal-backdrop" @click="showDetailModal = false"></div>
+        <div class="al-modal-panel relative" style="max-width: 480px;" @click.away="showDetailModal = false">
+            <!-- Dark header -->
+            <div class="al-card-dark px-6 py-5" style="border-bottom: 1px solid rgba(244,239,228,0.1);">
+                <p class="al-eyebrow mb-2" style="color: var(--al-bronze-l);" x-text="selectedEvent?.extendedProps?.type"></p>
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="al-h-2" style="color: var(--al-parchment);" x-text="selectedEvent?.title"></h3>
+                    <button @click="showDetailModal = false" type="button"
+                            class="al-btn-icon al-btn al-btn-ghost shrink-0"
+                            style="color: var(--al-parchment); border-color: rgba(244,239,228,0.2);">
+                        <i class="ph ph-x"></i>
+                    </button>
                 </div>
-                <button @click="showDetailModal = false" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors ml-4 shrink-0 mt-0.5">
-                    <i class="ph ph-x text-white"></i>
-                </button>
             </div>
-            <div class="p-6 space-y-4">
-                <div class="flex items-center gap-3 py-3 border-b border-slate-100">
-                    <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                        <i class="ph ph-user text-slate-500"></i>
+            <div class="al-modal-body space-y-3">
+                <div class="flex items-start gap-3 py-2">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-marble); color: var(--al-ink-soft);">
+                        <i class="ph ph-user"></i>
                     </div>
                     <div>
-                        <p class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Cliente</p>
-                        <p class="font-semibold text-slate-900 text-sm" x-text="selectedEvent?.extendedProps?.client_name"></p>
+                        <p class="al-tag">Cliente</p>
+                        <p class="font-medium text-ink mt-0.5" x-text="selectedEvent?.extendedProps?.client_name"></p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3 py-3 border-b border-slate-100">
-                    <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                        <i class="ph ph-clock text-slate-500"></i>
+                <div class="flex items-start gap-3 py-2 border-t" style="border-color: var(--al-rule-faint);">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-marble); color: var(--al-ink-soft);">
+                        <i class="ph ph-clock"></i>
                     </div>
                     <div>
-                        <p class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Data e Ora</p>
-                        <p class="font-semibold text-slate-900 text-sm" x-text="formatDate(selectedEvent?.start) + ' · ' + formatTime(selectedEvent?.start) + ' – ' + formatTime(selectedEvent?.end)"></p>
+                        <p class="al-tag">Data e ora</p>
+                        <p class="font-medium text-ink mt-0.5" x-text="formatDate(selectedEvent?.start) + ' · ' + formatTime(selectedEvent?.start) + ' – ' + formatTime(selectedEvent?.end)"></p>
                     </div>
                 </div>
-                <div x-show="selectedEvent?.extendedProps?.description" class="flex items-start gap-3 py-3 border-b border-slate-100">
-                    <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="ph ph-note text-slate-500"></i>
+                <div x-show="selectedEvent?.extendedProps?.description" class="flex items-start gap-3 py-2 border-t" style="border-color: var(--al-rule-faint);">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-marble); color: var(--al-ink-soft);">
+                        <i class="ph ph-note"></i>
                     </div>
                     <div>
-                        <p class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Note</p>
-                        <p class="text-sm text-slate-700 leading-relaxed" x-text="selectedEvent?.extendedProps?.description"></p>
+                        <p class="al-tag mb-1">Note</p>
+                        <p class="al-body" x-text="selectedEvent?.extendedProps?.description"></p>
                     </div>
                 </div>
-                <div x-show="selectedEvent?.extendedProps?.meeting_url" class="flex items-start gap-3 py-3 border-b border-slate-100">
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                        <i class="ph ph-video-camera text-accent"></i>
+                <div x-show="selectedEvent?.extendedProps?.meeting_url" class="flex items-start gap-3 py-2 border-t" style="border-color: var(--al-rule-faint);">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-info-bg); color: var(--al-aegean);">
+                        <i class="ph ph-video-camera"></i>
                     </div>
                     <div>
-                        <p class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Link Meeting</p>
-                        <a :href="selectedEvent?.extendedProps?.meeting_url" target="_blank" class="text-accent hover:text-blue-700 text-sm font-semibold flex items-center gap-1 break-all">
+                        <p class="al-tag mb-1">Link videochiamata</p>
+                        <a :href="selectedEvent?.extendedProps?.meeting_url" target="_blank" class="al-link al-link-bronze text-[13px] flex items-center gap-1 break-all">
                             <i class="ph ph-arrow-square-out shrink-0"></i>
                             <span x-text="selectedEvent?.extendedProps?.meeting_url"></span>
                         </a>
                     </div>
                 </div>
-                <div x-show="selectedEvent?.extendedProps?.check_url" class="rounded-xl bg-indigo-50 border border-indigo-100 p-4 flex items-start gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="ph ph-clipboard-text text-indigo-600"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-semibold text-indigo-900 mb-2">Appuntamento con check progressi</p>
-                        <a :href="selectedEvent?.extendedProps?.check_url"
-                           class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-                            <i class="ph ph-paper-plane-tilt"></i> Compila il check
-                        </a>
-                    </div>
+                <div x-show="selectedEvent?.extendedProps?.check_url" class="al-card al-card-warm" style="margin-top: 12px;">
+                    <p class="al-eyebrow mb-2" style="color: var(--al-bronze);">Check Progressi</p>
+                    <p class="al-body mb-4">Compila il check legato a questo appuntamento.</p>
+                    <a :href="selectedEvent?.extendedProps?.check_url" class="al-btn al-btn-sm al-btn-bronze">
+                        <i class="ph ph-paper-plane-tilt text-xs"></i>
+                        <span>Compila check</span>
+                    </a>
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-slate-100 flex justify-end">
-                <button @click="showDetailModal = false" class="px-5 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 text-sm font-semibold transition-colors">Chiudi</button>
+            <div class="al-modal-foot">
+                <button @click="showDetailModal = false" type="button" class="al-btn al-btn-ghost">Chiudi</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Crea Appuntamento -->
-    <div x-show="showCreateModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;">
-        <div x-transition class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" @click.away="showCreateModal = false">
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-900">
-                <div>
-                    <h3 class="font-bold text-lg text-white">Nuovo Appuntamento</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Aggiungi alla tua agenda</p>
+    <!-- Modal Crea -->
+    <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="al-modal-backdrop" @click="showCreateModal = false"></div>
+        <div class="al-modal-panel relative" style="max-width: 540px;" @click.away="showCreateModal = false">
+            <div class="al-card-dark px-6 py-5" style="border-bottom: 1px solid rgba(244,239,228,0.1);">
+                <p class="al-eyebrow mb-2" style="color: var(--al-bronze-l);">Nuovo</p>
+                <div class="flex items-center justify-between">
+                    <h3 class="al-h-2" style="color: var(--al-parchment);">Appuntamento</h3>
+                    <button @click="showCreateModal = false" type="button"
+                            class="al-btn-icon al-btn al-btn-ghost shrink-0"
+                            style="color: var(--al-parchment); border-color: rgba(244,239,228,0.2);">
+                        <i class="ph ph-x"></i>
+                    </button>
                 </div>
-                <button @click="showCreateModal = false" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-                    <i class="ph ph-x text-white"></i>
-                </button>
             </div>
-            <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+            <div class="al-modal-body space-y-5 max-h-[70vh] overflow-y-auto">
                 <!-- Tipo -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tipo</label>
+                    <label class="al-label">Tipo</label>
                     <div class="grid grid-cols-2 gap-2">
                         <template x-for="opt in appointmentTypes" :key="opt.value">
                             <button type="button"
                                     @click="newEvent.appointment_type = opt.value"
                                     :class="newEvent.appointment_type === opt.value
-                                        ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
-                                        : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
-                                    class="flex items-center gap-2.5 px-3.5 py-3 border rounded-xl text-sm font-semibold transition-all text-left">
+                                        ? 'border-bronze bg-marble-warm text-ink'
+                                        : 'border-rule text-ink-mute hover:border-bronze-soft hover:bg-marble'"
+                                    class="flex items-center gap-2.5 px-3.5 py-2.5 border transition-all text-left text-[13px] font-medium"
+                                    style="border-radius: var(--al-r-sm);">
                                 <span x-text="opt.icon" class="text-base leading-none"></span>
                                 <span x-text="opt.label"></span>
                             </button>
@@ -230,31 +274,27 @@
 
                 <!-- Titolo -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Titolo</label>
-                    <input type="text" x-model="newEvent.title"
-                           class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:outline-none transition-all"
-                           :placeholder="appointmentTypePlaceholder()">
+                    <label class="al-label">Titolo</label>
+                    <input type="text" x-model="newEvent.title" class="al-input" :placeholder="appointmentTypePlaceholder()">
                 </div>
 
                 <!-- Cliente -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Cliente</label>
+                    <label class="al-label">Cliente</label>
                     <div class="relative">
-                        <input type="text" x-model="clientSearchQuery" @input.debounce.300ms="searchClients"
-                               class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:outline-none transition-all"
-                               placeholder="Cerca per nome...">
+                        <input type="text" x-model="clientSearchQuery" @input.debounce.300ms="searchClients" class="al-input" placeholder="Cerca per nome...">
                         <div x-show="clientSearchResults.length > 0"
-                             class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-10 max-h-40 overflow-y-auto">
+                             class="absolute left-0 right-0 top-full mt-1 z-10 max-h-40 overflow-y-auto"
+                             style="background: var(--al-parchment); border: 1px solid var(--al-rule-strong); box-shadow: var(--al-shadow-3);">
                             <template x-for="cl in clientSearchResults" :key="cl.id">
-                                <div @click="selectClient(cl)"
-                                     class="px-4 py-2.5 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 font-medium" x-text="cl.name"></div>
+                                <div @click="selectClient(cl)" class="px-4 py-2.5 hover:bg-marble cursor-pointer text-[13px] text-ink-soft font-medium transition-colors" x-text="cl.name"></div>
                             </template>
                         </div>
                     </div>
-                    <div x-show="newEvent.client_id" class="mt-2 text-xs text-emerald-600 font-semibold flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+                    <div x-show="newEvent.client_id" class="mt-2 text-xs flex items-center gap-2 al-badge al-badge-success" style="font-family: var(--al-sans); padding: 6px 10px; letter-spacing: 0; text-transform: none; font-size: 12px;">
                         <i class="ph-fill ph-check-circle"></i>
                         <span x-text="selectedClientName"></span>
-                        <button @click="newEvent.client_id=null; selectedClientName=''" class="ml-auto text-red-400 hover:text-red-600">
+                        <button @click="newEvent.client_id=null; selectedClientName=''" type="button" class="ml-auto hover:text-danger">
                             <i class="ph ph-x text-xs"></i>
                         </button>
                     </div>
@@ -263,30 +303,24 @@
                 <!-- Date -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Inizio</label>
-                        <input type="datetime-local" x-model="newEvent.start_datetime"
-                               class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:outline-none transition-all">
+                        <label class="al-label">Inizio</label>
+                        <input type="datetime-local" x-model="newEvent.start_datetime" class="al-input">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Fine</label>
-                        <input type="datetime-local" x-model="newEvent.end_datetime"
-                               class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:outline-none transition-all">
+                        <label class="al-label">Fine</label>
+                        <input type="datetime-local" x-model="newEvent.end_datetime" class="al-input">
                     </div>
                 </div>
 
-                <!-- Recurring (solo check) -->
-                <div x-show="newEvent.appointment_type === 'check'" class="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="isRecurring" x-model="newEvent.is_recurring"
-                               class="w-4 h-4 rounded accent-slate-900 cursor-pointer">
-                        <label for="isRecurring" class="text-sm font-semibold text-slate-700 cursor-pointer">
-                            Check ricorrente
-                        </label>
-                    </div>
+                <!-- Recurring (check) -->
+                <div x-show="newEvent.appointment_type === 'check'" class="al-card al-card-warm space-y-3" style="padding: 16px;">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" x-model="newEvent.is_recurring" class="al-checkbox">
+                        <span class="text-[13px] font-medium text-ink">Check ricorrente</span>
+                    </label>
                     <div x-show="newEvent.is_recurring">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Frequenza <span class="normal-case text-slate-400 font-normal">(crea 8 appuntamenti)</span></label>
-                        <select x-model="newEvent.recurrence_rule"
-                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none">
+                        <label class="al-label">Frequenza <span class="al-tag" style="margin-left: 6px;">8 appuntamenti</span></label>
+                        <select x-model="newEvent.recurrence_rule" class="al-select">
                             <option value="settimanale">Settimanale</option>
                             <option value="bisettimanale">Bisettimanale</option>
                             <option value="mensile">Mensile</option>
@@ -294,32 +328,27 @@
                     </div>
                 </div>
 
-                <!-- Meeting URL (solo consulenza) -->
+                <!-- Meeting URL -->
                 <div x-show="newEvent.appointment_type === 'consulenza'">
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Link videochiamata</label>
-                    <input type="url" x-model="newEvent.meeting_url"
-                           class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:outline-none transition-all"
-                           placeholder="https://meet.google.com/...">
+                    <label class="al-label">Link videochiamata</label>
+                    <input type="url" x-model="newEvent.meeting_url" class="al-input" placeholder="https://meet.google.com/...">
                 </div>
 
                 <!-- Note -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Note (opzionale)</label>
-                    <textarea x-model="newEvent.description" rows="2"
-                              class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:outline-none transition-all resize-none"></textarea>
+                    <label class="al-label">Note (opzionale)</label>
+                    <textarea x-model="newEvent.description" rows="2" class="al-textarea"></textarea>
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-                <button @click="showCreateModal = false" class="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 text-sm font-semibold transition-colors">Annulla</button>
-                <button @click="saveAppointment()" class="px-5 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 text-sm font-semibold shadow-sm transition-colors">Salva appuntamento</button>
+            <div class="al-modal-foot">
+                <button @click="showCreateModal = false" type="button" class="al-btn al-btn-ghost">Annulla</button>
+                <button @click="saveAppointment()" type="button" class="al-btn al-btn-bronze">Salva</button>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    window.INITIAL_EVENTS = {{ events_json|safe }};
-</script>
+<script>window.INITIAL_EVENTS = {{ events_json|safe }};</script>
 <script src="/static/js/agenda_dashboard.js"></script>
 
 {% endblock %}

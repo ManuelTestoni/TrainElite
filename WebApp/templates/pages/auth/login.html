@@ -1,56 +1,49 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accedi - TrainElite</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-8 py-10">
-            <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-slate-900">Bentornato su TrainElite</h1>
-                <p class="text-sm text-slate-500 mt-2">Inserisci le tue credenziali per accedere</p>
-            </div>
-            
-            {% if error %}
-            <div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
-                <i class="ph-fill ph-warning-circle"></i> {{ error }}
-            </div>
-            {% endif %}
+{% extends 'pages/auth/_base.html' %}
 
-            <form action="{% url 'login' %}" method="POST" class="space-y-5">
-                {% csrf_token %}
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                    <input type="email" name="email" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" placeholder="tu@email.com">
-                </div>
+{% block auth_title %}Accedi{% endblock %}
+{% block auth_eyebrow %}Bentornato{% endblock %}
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" name="password" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" placeholder="••••••••">
-                </div>
+{% block auth_content %}
+<div class="text-center mb-8">
+    <h1 class="al-h-1" style="font-size: clamp(28px, 4vw, 36px);">Accedi al tuo studio</h1>
+    <p class="al-small mt-2">Inserisci le tue credenziali per continuare.</p>
+</div>
 
-                <div class="flex items-center justify-between text-sm">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-slate-600">Ricordami</span>
-                    </label>
-                    <a href="#" class="text-indigo-600 font-medium hover:text-indigo-700">Password dimenticata?</a>
-                </div>
+{% if error %}
+<div class="mb-5 p-3 flex items-center gap-2 al-badge-danger" style="font-family: var(--al-sans); font-size: 13px; padding: 10px 14px; letter-spacing: 0; text-transform: none;">
+    <i class="ph ph-warning-circle text-base"></i>
+    <span>{{ error }}</span>
+</div>
+{% endif %}
 
-                <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-sm mt-2">
-                    Accedi
-                </button>
-            </form>
+<form action="{% url 'login' %}" method="POST" class="space-y-5">
+    {% csrf_token %}
 
-            <p class="text-center text-sm text-slate-500 mt-8">
-                Non hai un account? <a href="{% url 'signup' %}" class="text-indigo-600 font-medium hover:text-indigo-700">Registrati</a>
-            </p>
-        </div>
+    <div>
+        <label class="al-label">Email</label>
+        <input type="email" name="email" required class="al-input" placeholder="tu@email.com" autocomplete="email">
     </div>
-</body>
-</html>
+
+    <div>
+        <label class="al-label">Password</label>
+        <input type="password" name="password" required class="al-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <div class="flex items-center justify-between text-sm">
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="al-checkbox">
+            <span class="al-small">Ricordami</span>
+        </label>
+        <a href="#" class="al-link al-link-bronze text-[12px]">Password dimenticata?</a>
+    </div>
+
+    <button type="submit" class="al-btn al-btn-lg w-full justify-center mt-2">
+        <span>Accedi</span>
+        <i class="ph ph-arrow-right text-sm"></i>
+    </button>
+</form>
+{% endblock %}
+
+{% block auth_foot %}
+Non hai un account? <a href="{% url 'signup' %}" class="al-link al-link-bronze">Registrati</a>
+{% endblock %}

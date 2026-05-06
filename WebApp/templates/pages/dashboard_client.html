@@ -1,55 +1,77 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard Cliente | TrainElite{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
 {% if has_coach %}
-<div class="mb-8">
-    <h1 class="text-2xl font-bold text-slate-900">Ciao, {{ client.first_name }} 👋</h1>
-    <p class="text-slate-500 mt-1">Il tuo coach attivo è {{ coach.first_name }} {{ coach.last_name }}.</p>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-2xl mb-4">
-            <i class="ph-fill ph-barbell"></i>
-        </div>
-        <h3 class="font-semibold text-slate-900 mb-1">Allenamento</h3>
-        <p class="text-sm text-slate-500 mb-4">Vedi solo le schede assegnate al tuo account.</p>
-        <a href="{% url 'allenamenti_list' %}" class="text-indigo-600 text-sm font-medium hover:text-indigo-700">Apri Schede &rarr;</a>
+<div class="max-w-6xl mx-auto">
+    <!-- Hero -->
+    <div class="mb-10">
+        <p class="al-eyebrow mb-3">Studio &middot; Atleta</p>
+        <h1 class="al-h-1">Ciao, <span class="al-display-i">{{ client.first_name }}</span></h1>
+        <p class="al-body mt-2 max-w-xl">Il tuo coach attivo è <strong class="text-ink">{{ coach.first_name }} {{ coach.last_name }}</strong>. Tutto il tuo percorso, in un unico ecosistema.</p>
+        <div class="al-rule-bronze mt-5"></div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl mb-4">
-            <i class="ph-fill ph-apple-logo"></i>
-        </div>
-        <h3 class="font-semibold text-slate-900 mb-1">Nutrizione</h3>
-        <p class="text-sm text-slate-500 mb-4">Consulta il piano del tuo coach.</p>
-        <a href="{% url 'nutrizione_piani' %}" class="text-indigo-600 text-sm font-medium hover:text-indigo-700">Vedi Piani &rarr;</a>
-    </div>
+    <!-- 3 cards: Allenamento / Nutrizione / Check -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <a href="{% url 'allenamenti_list' %}" class="al-card al-interactive al-reveal block" style="--d:0ms;">
+            <p class="al-tag mb-5">01</p>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="al-h-2">Allenamento</h3>
+                <i class="ph ph-barbell text-2xl text-bronze"></i>
+            </div>
+            <p class="al-body">Schede personalizzate dal tuo coach, sempre aggiornate.</p>
+            <div class="flex items-center gap-2 mt-6 al-link-bronze text-[12px] uppercase tracking-widest font-medium">
+                <span>Apri schede</span>
+                <i class="ph ph-arrow-right text-xs"></i>
+            </div>
+        </a>
 
-    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-        <div class="w-16 h-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center text-2xl mb-4">
-            <i class="ph-fill ph-camera"></i>
-        </div>
-        <h3 class="font-semibold text-slate-900 mb-1">Check</h3>
-        <p class="text-sm text-slate-500 mb-4">Carica il tuo prossimo check.</p>
-        <a href="{% url 'check_create' %}" class="text-indigo-600 text-sm font-medium hover:text-indigo-700">Compila Check &rarr;</a>
+        <a href="{% url 'nutrizione_piani' %}" class="al-card al-interactive al-reveal block" style="--d:80ms;">
+            <p class="al-tag mb-5">02</p>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="al-h-2">Nutrizione</h3>
+                <i class="ph ph-leaf text-2xl text-bronze"></i>
+            </div>
+            <p class="al-body">Piani alimentari calibrati su obiettivi e preferenze.</p>
+            <div class="flex items-center gap-2 mt-6 al-link-bronze text-[12px] uppercase tracking-widest font-medium">
+                <span>Vedi piani</span>
+                <i class="ph ph-arrow-right text-xs"></i>
+            </div>
+        </a>
+
+        <a href="{% url 'check_create' %}" class="al-card al-interactive al-reveal block" style="--d:160ms;">
+            <p class="al-tag mb-5">03</p>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="al-h-2">Check</h3>
+                <i class="ph ph-camera text-2xl text-bronze"></i>
+            </div>
+            <p class="al-body">Carica i tuoi progressi: foto, peso, circonferenze.</p>
+            <div class="flex items-center gap-2 mt-6 al-link-bronze text-[12px] uppercase tracking-widest font-medium">
+                <span>Compila check</span>
+                <i class="ph ph-arrow-right text-xs"></i>
+            </div>
+        </a>
     </div>
 </div>
 {% else %}
-<div class="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl shadow-sm p-8 md:p-10 text-center">
-    <div class="w-20 h-20 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-3xl mb-5">
-        <i class="ph ph-magnifying-glass"></i>
+<div class="max-w-2xl mx-auto py-16">
+    <div class="al-card al-card-warm al-reveal text-center py-12 px-8">
+        <p class="al-eyebrow mb-5" style="color: var(--al-bronze);">Athlynk</p>
+
+        <h1 class="al-h-1 mb-4">Trova il tuo primo coach</h1>
+        <p class="al-body max-w-md mx-auto mb-8">
+            Finché non sei collegato a un professionista, schede, piani e check restano nascosti. Esplora la directory dei coach disponibili.
+        </p>
+
+        <a href="{% url 'check_coach_directory' %}" class="al-btn al-btn-bronze">
+            <i class="ph ph-magnifying-glass"></i>
+            <span>Apri Directory</span>
+        </a>
+
+        <div class="al-meander al-meander-bronze mx-auto mt-10" style="height: 10px; width: 120px;"></div>
     </div>
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-100 text-xs font-semibold uppercase tracking-wider mb-4">
-        Nessun coach collegato
-    </div>
-    <h1 class="text-2xl font-bold text-slate-900">Trova un primo coach!</h1>
-    <p class="text-sm text-slate-500 mt-2 max-w-2xl mx-auto">Finché non hai un coach associato non mostriamo dati, schede o appuntamenti. Puoi esplorare i profili disponibili nella directory della piattaforma.</p>
-    <a href="{% url 'check_coach_directory' %}" class="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-900 hover:bg-black text-white text-sm font-semibold shadow-sm transition-colors mt-6">
-        Apri la directory coach
-    </a>
 </div>
 {% endif %}
 {% endblock %}

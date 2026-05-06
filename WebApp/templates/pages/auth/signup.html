@@ -1,137 +1,123 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrati - TrainElite</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen py-10 flex px-4">
-    <div class="max-w-xl w-full mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden my-auto" x-data="{ role: 'CLIENT', professional_type: 'COACH', password: '', confirmPassword: '', get pwMatch() { return this.confirmPassword === '' || this.password === this.confirmPassword; } }">
-        <div class="px-8 py-10">
-            <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-slate-900">Crea un account</h1>
-                <p class="text-sm text-slate-500 mt-2">Scegli il tuo ruolo e inizia</p>
-            </div>
-            
-            {% if error %}
-            <div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
-                <i class="ph-fill ph-warning-circle"></i> {{ error }}
-            </div>
-            {% endif %}
+{% extends 'pages/auth/_base.html' %}
 
-            <form action="{% url 'signup' %}" method="POST" class="space-y-5">
-                {% csrf_token %}
-                
-                <!-- Ruolo Selector -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="role" value="CLIENT" x-model="role" class="sr-only">
-                        <div :class="role === 'CLIENT' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600 ring-offset-2 ring-offset-white' : 'border-slate-200 hover:border-indigo-300'" class="p-4 rounded-xl border-2 transition-all text-center flex flex-col items-center gap-2">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl" :class="role === 'CLIENT' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'">
-                                <i class="ph-fill ph-user"></i>
-                            </div>
-                            <span class="font-semibold" :class="role === 'CLIENT' ? 'text-indigo-900' : 'text-slate-700'">Cliente</span>
-                        </div>
-                    </label>
+{% block auth_title %}Registrati{% endblock %}
+{% block auth_eyebrow %}Crea Account{% endblock %}
+{% block auth_panel_width %}max-w-xl{% endblock %}
 
-                    <label class="cursor-pointer">
-                        <input type="radio" name="role" value="COACH" x-model="role" class="sr-only">
-                        <div :class="role === 'COACH' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600 ring-offset-2 ring-offset-white' : 'border-slate-200 hover:border-indigo-300'" class="p-4 rounded-xl border-2 transition-all text-center flex flex-col items-center gap-2">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl" :class="role === 'COACH' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'">
-                                <i class="ph-fill ph-barbell"></i>
-                            </div>
-                            <span class="font-semibold" :class="role === 'COACH' ? 'text-indigo-900' : 'text-slate-700'">Coach</span>
-                        </div>
-                    </label>
-                </div>
+{% block auth_content %}
+<div class="text-center mb-8">
+    <h1 class="al-h-1" style="font-size: clamp(28px, 4vw, 36px);">Crea il tuo account</h1>
+    <p class="al-small mt-2">Scegli il tuo ruolo e inizia il percorso.</p>
+</div>
 
-                <!-- Professional Type Selector (solo per COACH) -->
-                <div x-show="role === 'COACH'" class="space-y-3 mb-6">
-                    <label class="block text-sm font-semibold text-slate-600">Tipo di Professionista *</label>
-                    <div class="grid grid-cols-1 gap-3">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="professional_type" value="COACH" x-model="professional_type" class="sr-only">
-                            <div :class="professional_type === 'COACH' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-slate-200 hover:border-indigo-300'" class="p-3 rounded-xl border-2 transition-all text-sm flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" :class="professional_type === 'COACH' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'">
-                                    <i class="ph-fill ph-graduation-cap text-lg"></i>
-                                </div>
-                                <div>
-                                    <span class="font-semibold block" :class="professional_type === 'COACH' ? 'text-indigo-900' : 'text-slate-700'">Coach</span>
-                                    <span class="text-xs text-slate-500">Allenamento + Nutrizione</span>
-                                </div>
-                            </div>
-                        </label>
+{% if error %}
+<div class="mb-5 p-3 flex items-center gap-2 al-badge-danger" style="font-family: var(--al-sans); font-size: 13px; padding: 10px 14px; letter-spacing: 0; text-transform: none;">
+    <i class="ph ph-warning-circle text-base"></i>
+    <span>{{ error }}</span>
+</div>
+{% endif %}
 
-                        <label class="cursor-pointer">
-                            <input type="radio" name="professional_type" value="ALLENATORE" x-model="professional_type" class="sr-only">
-                            <div :class="professional_type === 'ALLENATORE' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-slate-200 hover:border-indigo-300'" class="p-3 rounded-xl border-2 transition-all text-sm flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" :class="professional_type === 'ALLENATORE' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'">
-                                    <i class="ph-fill ph-barbell text-lg"></i>
-                                </div>
-                                <div>
-                                    <span class="font-semibold block" :class="professional_type === 'ALLENATORE' ? 'text-indigo-900' : 'text-slate-700'">Allenatore</span>
-                                    <span class="text-xs text-slate-500">Solo allenamento</span>
-                                </div>
-                            </div>
-                        </label>
+<form action="{% url 'signup' %}" method="POST" class="space-y-6"
+      x-data="{
+        role: 'CLIENT',
+        professional_type: 'COACH',
+        password: '',
+        confirmPassword: '',
+        get pwMatch() { return this.confirmPassword === '' || this.password === this.confirmPassword; }
+      }">
+    {% csrf_token %}
 
-                        <label class="cursor-pointer">
-                            <input type="radio" name="professional_type" value="NUTRIZIONISTA" x-model="professional_type" class="sr-only">
-                            <div :class="professional_type === 'NUTRIZIONISTA' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600' : 'border-slate-200 hover:border-indigo-300'" class="p-3 rounded-xl border-2 transition-all text-sm flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" :class="professional_type === 'NUTRIZIONISTA' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'">
-                                    <i class="ph-fill ph-apple text-lg"></i>
-                                </div>
-                                <div>
-                                    <span class="font-semibold block" :class="professional_type === 'NUTRIZIONISTA' ? 'text-indigo-900' : 'text-slate-700'">Nutrizionista</span>
-                                    <span class="text-xs text-slate-500">Solo nutrizione</span>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome</label>
-                        <input type="text" name="first_name" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" placeholder="Mario">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Cognome</label>
-                        <input type="text" name="last_name" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" placeholder="Rossi">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                    <input type="email" name="email" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" placeholder="tu@email.com">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" name="password" required x-model="password" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" placeholder="••••••••" minlength="8">
-                    <p class="text-xs text-slate-400 mt-1">Minimo 8 caratteri.</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Conferma Password</label>
-                    <input type="password" name="confirm_password" required x-model="confirmPassword" :class="!pwMatch ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50'" class="w-full px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none border" placeholder="••••••••" minlength="8">
-                    <p x-show="!pwMatch" class="text-xs text-red-600 mt-1">Le password non coincidono.</p>
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" :disabled="!pwMatch" :class="!pwMatch ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700'" class="w-full py-2.5 px-4 bg-indigo-600 text-white font-medium rounded-xl transition-colors shadow-sm text-lg">
-                        Registrati
-                    </button>
-                </div>
-            </form>
-
-            <p class="text-center text-sm text-slate-500 mt-8">
-                Hai già un account? <a href="{% url 'login' %}" class="text-indigo-600 font-medium hover:text-indigo-700">Accedi</a>
-            </p>
+    <!-- Role selector -->
+    <div>
+        <label class="al-label mb-3">Ruolo</label>
+        <div class="grid grid-cols-2 gap-3">
+            <label class="auth-tile" :class="role === 'CLIENT' ? 'is-on' : ''">
+                <input type="radio" name="role" value="CLIENT" x-model="role" class="sr-only">
+                <div class="auth-tile-icon"><i class="ph ph-user"></i></div>
+                <span class="al-h-4">Cliente</span>
+                <span class="al-tag" style="font-size:9px;">Atleta</span>
+            </label>
+            <label class="auth-tile" :class="role === 'COACH' ? 'is-on' : ''">
+                <input type="radio" name="role" value="COACH" x-model="role" class="sr-only">
+                <div class="auth-tile-icon"><i class="ph ph-barbell"></i></div>
+                <span class="al-h-4">Coach</span>
+                <span class="al-tag" style="font-size:9px;">Professionista</span>
+            </label>
         </div>
     </div>
-</body>
-</html>
+
+    <!-- Professional type (coach only) -->
+    <div x-show="role === 'COACH'" x-collapse>
+        <label class="al-label mb-3">Tipo di Professionista</label>
+        <div class="space-y-2">
+            <label class="auth-tile-row" :class="professional_type === 'COACH' ? 'is-on' : ''">
+                <input type="radio" name="professional_type" value="COACH" x-model="professional_type" class="sr-only">
+                <div class="auth-tile-icon"><i class="ph ph-graduation-cap"></i></div>
+                <div class="flex-1">
+                    <span class="al-h-4 block">Coach</span>
+                    <span class="al-small">Allenamento + Nutrizione</span>
+                </div>
+                <i class="ph ph-check text-bronze" x-show="professional_type === 'COACH'"></i>
+            </label>
+            <label class="auth-tile-row" :class="professional_type === 'ALLENATORE' ? 'is-on' : ''">
+                <input type="radio" name="professional_type" value="ALLENATORE" x-model="professional_type" class="sr-only">
+                <div class="auth-tile-icon"><i class="ph ph-barbell"></i></div>
+                <div class="flex-1">
+                    <span class="al-h-4 block">Allenatore</span>
+                    <span class="al-small">Solo allenamento</span>
+                </div>
+                <i class="ph ph-check text-bronze" x-show="professional_type === 'ALLENATORE'"></i>
+            </label>
+            <label class="auth-tile-row" :class="professional_type === 'NUTRIZIONISTA' ? 'is-on' : ''">
+                <input type="radio" name="professional_type" value="NUTRIZIONISTA" x-model="professional_type" class="sr-only">
+                <div class="auth-tile-icon"><i class="ph ph-leaf"></i></div>
+                <div class="flex-1">
+                    <span class="al-h-4 block">Nutrizionista</span>
+                    <span class="al-small">Solo nutrizione</span>
+                </div>
+                <i class="ph ph-check text-bronze" x-show="professional_type === 'NUTRIZIONISTA'"></i>
+            </label>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="al-label">Nome</label>
+            <input type="text" name="first_name" required class="al-input" placeholder="Mario" autocomplete="given-name">
+        </div>
+        <div>
+            <label class="al-label">Cognome</label>
+            <input type="text" name="last_name" required class="al-input" placeholder="Rossi" autocomplete="family-name">
+        </div>
+    </div>
+
+    <div>
+        <label class="al-label">Email</label>
+        <input type="email" name="email" required class="al-input" placeholder="tu@email.com" autocomplete="email">
+    </div>
+
+    <div>
+        <label class="al-label">Password</label>
+        <input type="password" name="password" required x-model="password"
+               class="al-input" placeholder="••••••••" minlength="8" autocomplete="new-password">
+        <span class="al-input-help">Minimo 8 caratteri.</span>
+    </div>
+
+    <div>
+        <label class="al-label">Conferma Password</label>
+        <input type="password" name="confirm_password" required x-model="confirmPassword"
+               :class="!pwMatch ? 'is-error' : ''"
+               class="al-input" placeholder="••••••••" minlength="8" autocomplete="new-password">
+        <span x-show="!pwMatch" class="al-input-error">Le password non coincidono.</span>
+    </div>
+
+    <button type="submit" :disabled="!pwMatch" class="al-btn al-btn-lg w-full justify-center mt-2">
+        <span>Crea Account</span>
+        <i class="ph ph-arrow-right text-sm"></i>
+    </button>
+</form>
+{% endblock %}
+
+{% block auth_foot %}
+Hai già un account? <a href="{% url 'login' %}" class="al-link al-link-bronze">Accedi</a>
+{% endblock %}

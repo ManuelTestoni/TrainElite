@@ -1,21 +1,23 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="w-full max-w-4xl mx-auto">
+{% block title %}Chat{% endblock %}
 
-  <div class="mb-6">
-    <h1 class="text-2xl font-bold text-slate-900">Chat</h1>
-    <p class="text-sm text-slate-500 mt-1">
-      {% if is_coach %}Conversazioni con i tuoi clienti.{% else %}Conversazioni con i tuoi professionisti.{% endif %}
-    </p>
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+  <div class="mb-8">
+    <p class="al-eyebrow mb-3">Studio &middot; Chat</p>
+    <h1 class="al-h-1">Conversazioni</h1>
+    <p class="al-body mt-2">{% if is_coach %}Le tue conversazioni con i clienti.{% else %}Le tue conversazioni con i professionisti.{% endif %}</p>
+    <div class="al-rule-bronze mt-5"></div>
   </div>
 
-  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+  <div class="al-card al-card-flush overflow-hidden">
     {% if partners %}
-    <div class="divide-y divide-slate-100">
+    <div>
       {% for p in partners %}
-      <a href="{% url 'chat_detail' p.conversation.id %}" class="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors">
-        <div class="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold uppercase shrink-0 overflow-hidden">
+      <a href="{% url 'chat_detail' p.conversation.id %}" class="flex items-center gap-4 px-5 py-4 hover:bg-marble-warm transition-colors" style="border-bottom: 1px solid var(--al-rule-faint);">
+        <div class="al-avatar al-avatar-lg al-avatar-sq overflow-hidden" style="background: var(--al-aegean);">
           {% if p.partner_avatar %}
           <img src="{{ p.partner_avatar }}" alt="" class="w-full h-full object-cover">
           {% else %}
@@ -23,17 +25,17 @@
           {% endif %}
         </div>
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2">
-            <h3 class="font-semibold text-slate-900 truncate">{{ p.partner_name }}</h3>
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="al-h-3 truncate">{{ p.partner_name }}</h3>
             {% if p.partner_role == 'COACH' %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold uppercase">Coach</span>
+              <span class="al-badge al-badge-ink">Coach</span>
             {% elif p.partner_role == 'ALLENATORE' %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">Allenatore</span>
+              <span class="al-badge al-badge-aegean">Allenatore</span>
             {% elif p.partner_role == 'NUTRIZIONISTA' %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase">Nutrizionista</span>
+              <span class="al-badge al-badge-success">Nutrizionista</span>
             {% endif %}
           </div>
-          <p class="text-sm text-slate-500 truncate mt-0.5">
+          <p class="al-small truncate">
             {% if p.last_message %}
               {% if p.last_message.message_type == 'IMAGE' %}<i class="ph ph-image"></i> Foto
               {% elif p.last_message.message_type == 'VIDEO' %}<i class="ph ph-video"></i> Video
@@ -42,28 +44,26 @@
               {% else %}{{ p.last_message.body|truncatechars:60 }}
               {% endif %}
             {% else %}
-              <span class="italic text-slate-400">Nessun messaggio</span>
+              <span class="italic text-ink-line">Nessun messaggio</span>
             {% endif %}
           </p>
         </div>
         <div class="text-right shrink-0">
           {% if p.last_message %}
-          <p class="text-xs text-slate-400">{{ p.last_message.sent_at|date:"d M H:i" }}</p>
+          <p class="al-tag" style="font-size:10px;">{{ p.last_message.sent_at|date:"d M H:i" }}</p>
           {% endif %}
           {% if p.unread_count > 0 %}
-          <span class="inline-block mt-1 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">{{ p.unread_count }}</span>
+          <span class="inline-block mt-1 px-2 py-0.5 font-mono text-[10px] font-bold" style="background: var(--al-bronze); color: var(--al-parchment); border-radius: var(--al-r-sm);">{{ p.unread_count }}</span>
           {% endif %}
         </div>
       </a>
       {% endfor %}
     </div>
     {% else %}
-    <div class="px-6 py-16 text-center">
-      <i class="ph ph-chats-circle text-4xl text-slate-300"></i>
-      <p class="mt-4 text-sm font-semibold text-slate-700">Nessuna conversazione</p>
-      <p class="text-xs text-slate-500 mt-1">
-        {% if is_coach %}Le chat con i tuoi clienti appariranno qui.{% else %}Connettiti a un professionista per iniziare a chattare.{% endif %}
-      </p>
+    <div class="al-empty">
+      <i class="ph ph-chats-circle al-empty-icon"></i>
+      <h3>Nessuna conversazione</h3>
+      <p>{% if is_coach %}Le chat con i tuoi clienti appariranno qui.{% else %}Connettiti a un professionista per iniziare a chattare.{% endif %}</p>
     </div>
     {% endif %}
   </div>

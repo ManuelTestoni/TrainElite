@@ -1,150 +1,144 @@
 {% extends 'base.html' %}
 
+{% block title %}Clienti{% endblock %}
+
 {% block content %}
-<div class="w-full max-w-7xl mx-auto" x-data="{ statusFilter: '{{ status_filter }}' }">
+<div class="max-w-7xl mx-auto" x-data="{ statusFilter: '{{ status_filter }}' }">
 
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">I tuoi Clienti</h1>
-            <p class="text-sm text-slate-500 mt-1">
-                <span class="font-semibold text-slate-700">{{ active_count }}</span> attivi su <span class="font-semibold text-slate-700">{{ total_count }}</span> totali
+            <p class="al-eyebrow mb-3">Studio &middot; Clienti</p>
+            <h1 class="al-h-1">I tuoi <span class="al-display-i">atleti</span></h1>
+            <p class="al-body mt-2">
+                <span class="font-medium text-ink">{{ active_count }}</span> attivi su <span class="font-medium text-ink">{{ total_count }}</span> totali
             </p>
+            <div class="al-rule-bronze mt-5"></div>
+        </div>
+        <div>
+            <a href="{% url 'clienti_registra' %}" class="al-btn">
+                <i class="ph ph-user-plus text-sm"></i>
+                <span>Aggiungi Cliente</span>
+            </a>
         </div>
     </div>
 
     <!-- Search & Filters -->
     <form method="GET" action="" class="flex flex-col sm:flex-row gap-3 mb-6">
-        <div class="relative flex-1">
-            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <input type="text" name="q" value="{{ search }}" placeholder="Cerca per nome o obiettivo..."
-                   class="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
+        <div class="al-search flex-1">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" name="q" value="{{ search }}" placeholder="Cerca per nome o obiettivo..." class="al-input">
         </div>
-        <select name="status" onchange="this.form.submit()"
-                class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer">
+        <select name="status" onchange="this.form.submit()" class="al-select sm:max-w-[200px]">
             <option value="" {% if not status_filter %}selected{% endif %}>Tutti gli stati</option>
             <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Attivi</option>
             <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>In attesa</option>
             <option value="INACTIVE" {% if status_filter == 'INACTIVE' %}selected{% endif %}>Inattivi</option>
         </select>
         {% if search or status_filter %}
-        <a href="{% url 'clienti_list' %}" class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors whitespace-nowrap flex items-center gap-1.5">
-            <i class="ph ph-x"></i> Resetta
+        <a href="{% url 'clienti_list' %}" class="al-btn al-btn-ghost al-btn-sm">
+            <i class="ph ph-x"></i>
+            <span>Resetta</span>
         </a>
         {% endif %}
     </form>
 
-    <!-- Client Table -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <!-- Table -->
+    <div class="al-card al-card-flush overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="al-table">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-                        <th class="px-6 py-4 font-semibold">Cliente</th>
-                        <th class="px-6 py-4 font-semibold">Stato</th>
-                        <th class="px-6 py-4 font-semibold">Obiettivo</th>
-                        <th class="px-6 py-4 font-semibold">Allenamento Attivo</th>
-                        <th class="px-6 py-4 font-semibold">Ultimo Check</th>
-                        <th class="px-6 py-4 font-semibold">Abbonamento</th>
-                        <th class="px-6 py-4 font-semibold text-right">Azioni</th>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Stato</th>
+                        <th>Obiettivo</th>
+                        <th>Allenamento</th>
+                        <th>Ultimo Check</th>
+                        <th>Abbonamento</th>
+                        <th class="text-right">&nbsp;</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-sm">
+                <tbody>
                     {% for item in clients_data %}
                     {% with client=item.client rel=item.relationship %}
-                    <tr class="hover:bg-slate-50 transition-colors group">
-
-                        <!-- Nome + avatar -->
-                        <td class="px-6 py-4">
+                    <tr>
+                        <td>
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center font-bold text-sm shrink-0">
+                                <div class="al-avatar al-avatar-sm al-avatar-sq">
                                     {{ client.first_name|slice:":1" }}{{ client.last_name|slice:":1" }}
                                 </div>
                                 <div>
-                                    <p class="font-semibold text-slate-900">{{ client.first_name }} {{ client.last_name }}</p>
-                                    <p class="text-xs text-slate-400">{{ client.user.email }}</p>
+                                    <p class="font-medium text-ink">{{ client.first_name }} {{ client.last_name }}</p>
+                                    <p class="al-tag" style="font-size:9px;">{{ client.user.email }}</p>
                                 </div>
                             </div>
                         </td>
-
-                        <!-- Status badge -->
-                        <td class="px-6 py-4">
+                        <td>
                             {% if rel.status == 'ACTIVE' %}
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Attivo
-                            </span>
+                            <span class="al-badge al-badge-success"><span class="dot"></span>Attivo</span>
                             {% elif rel.status == 'PENDING' %}
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> In attesa
-                            </span>
+                            <span class="al-badge al-badge-warn"><span class="dot"></span>In attesa</span>
                             {% else %}
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Inattivo
-                            </span>
+                            <span class="al-badge"><span class="dot"></span>Inattivo</span>
                             {% endif %}
                         </td>
-
-                        <!-- Obiettivo -->
-                        <td class="px-6 py-4">
+                        <td>
                             {% if client.primary_goal %}
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                                {{ client.primary_goal }}
-                            </span>
+                            <span class="al-badge al-badge-aegean">{{ client.primary_goal }}</span>
                             {% else %}
-                            <span class="text-slate-400 text-xs">—</span>
+                            <span class="al-tag">—</span>
                             {% endif %}
                         </td>
-
-                        <!-- Allenamento attivo -->
-                        <td class="px-6 py-4">
+                        <td>
                             {% if item.active_workout %}
-                            <p class="text-slate-800 font-medium truncate max-w-[160px]">{{ item.active_workout.workout_plan.title }}</p>
-                            <p class="text-xs text-slate-400">{{ item.active_workout.workout_plan.level|default:"" }}</p>
+                            <p class="font-medium text-ink truncate max-w-[160px]">{{ item.active_workout.workout_plan.title }}</p>
+                            <p class="al-tag" style="font-size:9px;">{{ item.active_workout.workout_plan.level|default:"" }}</p>
                             {% else %}
-                            <span class="text-slate-400 text-xs">Nessun piano</span>
+                            <span class="al-tag">Nessun piano</span>
                             {% endif %}
                         </td>
-
-                        <!-- Ultimo check -->
-                        <td class="px-6 py-4">
+                        <td>
                             {% if item.last_check_date %}
-                            <p class="text-slate-700 font-medium">{{ item.last_check_date|date:"d M Y" }}</p>
+                            <span class="al-table-num">{{ item.last_check_date|date:"d M Y" }}</span>
                             {% else %}
-                            <span class="text-slate-400 text-xs">Mai</span>
+                            <span class="al-tag">Mai</span>
                             {% endif %}
                         </td>
-
-                        <!-- Abbonamento -->
-                        <td class="px-6 py-4">
+                        <td>
                             {% if item.active_subscription %}
-                            <p class="text-slate-800 font-medium truncate max-w-[140px]">{{ item.active_subscription.subscription_plan.name }}</p>
-                            <p class="text-xs text-emerald-600 font-medium">€{{ item.active_subscription.subscription_plan.price }}</p>
+                            <p class="font-medium text-ink truncate max-w-[140px]">{{ item.active_subscription.subscription_plan.name }}</p>
+                            <p class="text-xs text-bronze font-medium">€{{ item.active_subscription.subscription_plan.price }}</p>
                             {% else %}
-                            <span class="text-slate-400 text-xs">Nessuno</span>
+                            <span class="al-tag">Nessuno</span>
                             {% endif %}
                         </td>
-
-                        <!-- Azioni -->
-                        <td class="px-6 py-4 text-right">
-                            <a href="{% url 'clienti_detail' client.id %}"
-                               class="inline-flex items-center justify-center px-3 py-1.5 bg-accent/5 text-accent hover:bg-accent hover:text-white rounded-lg text-sm font-medium transition-colors">
-                                Dettagli
+                        <td class="text-right">
+                            <a href="{% url 'clienti_detail' client.id %}" class="al-btn al-btn-ghost al-btn-sm">
+                                <span>Apri</span>
+                                <i class="ph ph-arrow-right text-xs"></i>
                             </a>
                         </td>
                     </tr>
                     {% endwith %}
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="px-6 py-16 text-center">
-                            <div class="flex flex-col items-center gap-3">
-                                <i class="ph ph-users text-4xl text-slate-300"></i>
-                                <p class="text-slate-500 font-medium">
+                        <td colspan="7">
+                            <div class="al-empty">
+                                <i class="ph ph-users-three al-empty-icon"></i>
+                                <h3>{% if search or status_filter %}Nessun risultato{% else %}Nessun cliente{% endif %}</h3>
+                                <p>
                                     {% if search or status_filter %}
-                                    Nessun cliente trovato con i filtri applicati.
+                                    Modifica i filtri o resetta la ricerca.
                                     {% else %}
-                                    Non hai ancora clienti associati.
+                                    Aggiungi il primo atleta per iniziare.
                                     {% endif %}
                                 </p>
+                                {% if not search and not status_filter %}
+                                <a href="{% url 'clienti_registra' %}" class="al-btn al-btn-sm al-btn-bronze">
+                                    <i class="ph ph-user-plus"></i>
+                                    <span>Aggiungi Cliente</span>
+                                </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -154,12 +148,12 @@
         </div>
 
         {% if total_count > 0 %}
-        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/50">
-            <span class="text-sm text-slate-500">
+        <div class="px-6 py-4 border-t flex items-center justify-between" style="border-color: var(--al-rule); background: var(--al-marble-warm);">
+            <span class="al-tag">
                 {% if search or status_filter %}
-                    Trovati <span class="font-medium text-slate-900">{{ total_count }}</span> clienti
+                {{ total_count }} risultati
                 {% else %}
-                    <span class="font-medium text-slate-900">{{ total_count }}</span> clienti totali
+                {{ total_count }} clienti totali
                 {% endif %}
             </span>
         </div>

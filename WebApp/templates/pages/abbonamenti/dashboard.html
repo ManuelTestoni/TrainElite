@@ -1,95 +1,73 @@
 {% extends 'base.html' %}
 
+{% block title %}Abbonamenti{% endblock %}
+
 {% block content %}
-<div class="flex-1 w-full max-w-7xl mx-auto h-full flex flex-col">
+<div class="max-w-7xl mx-auto h-full flex flex-col">
+
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 flex-shrink-0">
         <div>
-            <div class="flex items-center text-sm text-slate-500 mb-2 font-medium">
-                <a href="{% url 'dashboard' %}" class="hover:text-slate-800 transition-colors">Home</a>
-                <span class="mx-2 text-slate-300">/</span>
-                <span class="text-slate-800">Abbonamenti</span>
-            </div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestione Abbonamenti</h1>
-            <p class="text-sm text-slate-500 mt-1">Gestisci i tuoi piani, monitora i pagamenti e lo stato dei clienti.</p>
+            <p class="al-eyebrow mb-3">Studio &middot; Billing</p>
+            <h1 class="al-h-1">Gestione <span class="al-display-i">abbonamenti</span></h1>
+            <p class="al-body mt-2">Piani, ricavi e stato pagamenti dei clienti.</p>
+            <div class="al-rule-bronze mt-5"></div>
         </div>
-        <a href="{% url 'subscription_plan_create' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center">
-            <i class="ph ph-plus mr-2 text-lg"></i> Crea Nuovo Piano
+        <a href="{% url 'subscription_plan_create' %}" class="al-btn">
+            <i class="ph ph-plus text-sm"></i>
+            <span>Crea Piano</span>
         </a>
     </div>
 
-    <!-- Main KPIs -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 flex-shrink-0">
-        <!-- Ricavi Totali -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Ricavi Totali</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">
-                        €{{ total_revenue|default:"0"|floatformat:2 }}
-                    </h3>
-                </div>
-                <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-                    <i class="ph-fill ph-currency-eur text-xl"></i>
-                </div>
+    <!-- KPI -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8 flex-shrink-0">
+        <div class="al-kpi al-reveal" style="--d:0ms;">
+            <div class="al-kpi-label">Ricavi Totali</div>
+            <div class="al-kpi-num">€{{ total_revenue|default:"0"|floatformat:2 }}</div>
+            <div class="al-kpi-meta flex items-center gap-2">
+                <i class="ph ph-currency-eur text-bronze"></i>
+                <span>Cumulati</span>
             </div>
         </div>
 
-        <!-- Abbonamenti Attivi -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Abbonamenti Attivi</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ active_subs }}</h3>
-                </div>
-                <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                    <i class="ph-fill ph-check-circle text-xl"></i>
-                </div>
+        <div class="al-kpi al-reveal" style="--d:60ms;">
+            <div class="al-kpi-label">Abbonamenti Attivi</div>
+            <div class="al-kpi-num">{{ active_subs }}</div>
+            <div class="al-kpi-meta flex items-center gap-2">
+                <i class="ph ph-check-circle text-bronze"></i>
+                <span>In corso</span>
             </div>
         </div>
 
-        <!-- Piani Disponibili -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Piani Disponibili</p>
-                    <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ subscription_plans.count }}</h3>
-                </div>
-                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                    <i class="ph-fill ph-list-dashes text-xl"></i>
-                </div>
+        <div class="al-kpi al-reveal" style="--d:120ms;">
+            <div class="al-kpi-label">Piani Disponibili</div>
+            <div class="al-kpi-num">{{ subscription_plans.count }}</div>
+            <div class="al-kpi-meta flex items-center gap-2">
+                <i class="ph ph-list-dashes text-bronze"></i>
+                <span>Listino</span>
             </div>
         </div>
-
     </div>
 
     <!-- Modal Assegna Piano -->
     <script>
     function planAssignModal() {
         return {
-            show: false,
-            planId: null,
-            planName: '',
+            show: false, planId: null, planName: '',
             clients: {{ coach_clients_json|safe }},
             subscribedIds: {{ already_subscribed_ids_json|safe }},
             eligibleClients: [],
-            selectedClientId: '',
-            paymentNotes: '',
-            loading: false,
-            errorMsg: '',
+            selectedClientId: '', paymentNotes: '',
+            loading: false, errorMsg: '',
             open(id, name) {
-                this.planId = id;
-                this.planName = name;
-                this.selectedClientId = '';
-                this.paymentNotes = '';
-                this.errorMsg = '';
+                this.planId = id; this.planName = name;
+                this.selectedClientId = ''; this.paymentNotes = ''; this.errorMsg = '';
                 this.eligibleClients = this.clients.filter(c => !this.subscribedIds.includes(c.id));
                 this.show = true;
             },
             async submit() {
                 if (!this.selectedClientId) { this.errorMsg = 'Seleziona un cliente.'; return; }
-                this.loading = true;
-                this.errorMsg = '';
+                this.loading = true; this.errorMsg = '';
                 try {
                     const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value
                         || document.cookie.split('; ').find(r => r.startsWith('csrftoken=')).split('=')[1];
@@ -102,239 +80,229 @@
                     const data = await res.json();
                     if (res.ok) { window.location.reload(); }
                     else { this.errorMsg = data.error || 'Errore durante l\'assegnazione.'; }
-                } catch (e) {
-                    this.errorMsg = 'Errore di rete. Riprova.';
-                } finally {
-                    this.loading = false;
-                }
+                } catch (e) { this.errorMsg = 'Errore di rete. Riprova.'; }
+                finally { this.loading = false; }
             }
         };
     }
     </script>
+
     <div x-data="planAssignModal()" @keydown.escape.window="show = false">
         {% csrf_token %}
 
-        <div x-show="show" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
-            <div x-show="show" x-transition @click.outside="show = false"
-                 class="bg-white rounded-2xl shadow-xl w-full max-w-md">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                    <div>
-                        <h3 class="text-base font-semibold text-slate-900">Assegna Piano</h3>
-                        <p class="text-xs text-slate-500 mt-0.5" x-text="planName"></p>
+        <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="al-modal-backdrop" @click="show = false"></div>
+            <div class="al-modal-panel relative" style="max-width: 480px;">
+                <div class="al-modal-head">
+                    <p class="al-eyebrow mb-2" style="color: var(--al-bronze);">Billing</p>
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <h3 class="al-h-2">Assegna Piano</h3>
+                            <p class="al-small mt-1" x-text="planName"></p>
+                        </div>
+                        <button @click="show = false" type="button" class="al-btn-icon al-btn al-btn-ghost">
+                            <i class="ph ph-x"></i>
+                        </button>
                     </div>
-                    <button @click="show = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
-                        <i class="ph ph-x text-slate-600"></i>
-                    </button>
                 </div>
 
-                <div class="p-6 space-y-4">
-                    <div x-show="errorMsg" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-xl text-sm">
-                        <i class="ph-fill ph-warning-circle shrink-0"></i>
+                <div class="al-modal-body space-y-4">
+                    <div x-show="errorMsg" class="al-toast is-danger" x-cloak>
+                        <i class="ph ph-warning-circle"></i>
                         <span x-text="errorMsg"></span>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Cliente <span class="text-red-500">*</span></label>
-                        <select x-model="selectedClientId"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all">
+                        <label class="al-label">Cliente *</label>
+                        <select x-model="selectedClientId" class="al-select">
                             <option value="">— Seleziona cliente —</option>
                             <template x-for="c in eligibleClients" :key="c.id">
                                 <option :value="c.id" x-text="c.first_name + ' ' + c.last_name"></option>
                             </template>
                         </select>
                         <template x-if="eligibleClients.length === 0 && clients.length > 0">
-                            <p class="text-xs text-amber-600 mt-1">Tutti i tuoi clienti hanno già un abbonamento attivo.</p>
+                            <span class="al-input-help" style="color: var(--al-warn);">Tutti i tuoi clienti hanno già un abbonamento attivo.</span>
                         </template>
                         <template x-if="clients.length === 0">
-                            <p class="text-xs text-amber-600 mt-1">Nessun cliente attivo. <a href="{% url 'clienti_registra' %}" class="underline">Registra un cliente prima.</a></p>
+                            <span class="al-input-help" style="color: var(--al-warn);">Nessun cliente attivo. <a href="{% url 'clienti_registra' %}" class="al-link al-link-bronze">Registra un cliente prima</a>.</span>
                         </template>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Note Pagamento</label>
-                        <input type="text" x-model="paymentNotes"
-                               placeholder="Es. Pagato in contanti il 29/04/2026"
-                               class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent transition-all">
-                        <p class="text-xs text-slate-400 mt-1">Nota interna, non visibile al cliente.</p>
+                        <label class="al-label">Note Pagamento</label>
+                        <input type="text" x-model="paymentNotes" placeholder="Es. Pagato in contanti il 29/04/2026" class="al-input">
+                        <span class="al-input-help">Nota interna, non visibile al cliente.</span>
                     </div>
                 </div>
 
-                <div class="flex gap-3 px-6 py-4 border-t border-slate-100">
-                    <button @click="show = false" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
-                        Annulla
-                    </button>
-                    <button @click="submit()" :disabled="loading"
-                            class="flex-1 px-4 py-2.5 rounded-xl bg-accent hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-60">
-                        <span x-show="!loading">Assegna Piano</span>
-                        <span x-show="loading">Salvataggio...</span>
+                <div class="al-modal-foot">
+                    <button @click="show = false" type="button" class="al-btn al-btn-ghost flex-1">Annulla</button>
+                    <button @click="submit()" :disabled="loading" type="button" class="al-btn al-btn-bronze flex-1">
+                        <span x-show="!loading">Assegna</span>
+                        <span x-show="loading">Salvo...</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Tabs and Content Area -->
-        <div x-data="{ tab: 'piani' }" class="flex-1 flex flex-col min-h-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        
-        <!-- Tab Navigation -->
-        <div class="border-b border-slate-200 px-6 pt-6 bg-slate-50/50">
-            <nav class="flex gap-6 -mb-px">
-                <button @click="tab = 'piani'" :class="tab === 'piani' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="pb-4 border-b-2 font-medium text-sm transition-colors flex items-center">
-                    <i class="ph ph-list-dashes mr-2 text-lg"></i> Il Tuo Listino Piani
-                </button>
-                <button @click="tab = 'iscritti'" :class="tab === 'iscritti' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="pb-4 border-b-2 font-medium text-sm transition-colors flex items-center">
-                    <i class="ph ph-users mr-2 text-lg"></i> Clienti Iscritti
-                </button>
-            </nav>
-        </div>
+        <!-- Tabs container -->
+        <div x-data="{ tab: 'piani' }" class="al-card al-card-flush flex-1 flex flex-col min-h-0 overflow-hidden">
 
-        <!-- Tab: Listino Piani -->
-        <div x-show="tab === 'piani'" class="flex-1 p-6 overflow-y-auto bg-slate-50/30">
-            {% if subscription_plans %}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {% for plan in subscription_plans %}
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:border-indigo-300 hover:shadow-md transition-all">
-                    <!-- Header -->
-                    <div class="p-6 border-b border-slate-100 relative">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="px-2.5 py-1 {% if plan.is_active %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-600{% endif %} text-xs font-bold uppercase tracking-wider rounded-md">
-                                {% if plan.is_active %}Attivo{% else %}Inattivo{% endif %}
-                            </span>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mt-2">{{ plan.name }}</h3>
-                        <p class="text-sm text-slate-500 mt-1">{{ plan.plan_type }}</p>
-                        <div class="mt-4 flex items-baseline">
-                            <span class="text-3xl font-bold text-slate-900">€{{ plan.price }}</span>
-                            <span class="text-slate-500 font-medium ml-1">/ {{ plan.billing_interval|default:"mese" }}</span>
-                        </div>
-                    </div>
+            <!-- Tab nav -->
+            <div class="border-b px-6 pt-5" style="border-color: var(--al-rule); background: var(--al-marble-warm);">
+                <nav class="flex gap-6 -mb-px">
+                    <button @click="tab = 'piani'" type="button"
+                            :class="tab === 'piani' ? 'border-bronze text-ink' : 'border-transparent text-ink-mute hover:text-ink'"
+                            class="pb-4 border-b-2 font-medium transition-colors flex items-center gap-2"
+                            style="font-family: var(--al-sans); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;">
+                        <i class="ph ph-list-dashes text-base"></i>Listino
+                    </button>
+                    <button @click="tab = 'iscritti'" type="button"
+                            :class="tab === 'iscritti' ? 'border-bronze text-ink' : 'border-transparent text-ink-mute hover:text-ink'"
+                            class="pb-4 border-b-2 font-medium transition-colors flex items-center gap-2"
+                            style="font-family: var(--al-sans); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;">
+                        <i class="ph ph-users text-base"></i>Iscritti
+                    </button>
+                </nav>
+            </div>
 
-                    <!-- Body -->
-                    <div class="p-6 flex-1 bg-slate-50/50">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Descrizione</p>
-                        <p class="text-sm text-slate-700 line-clamp-3">
-                            {{ plan.description|truncatewords:20 }}
-                        </p>
-
-                        <div class="mt-6 pt-4 border-t border-slate-200 space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Durata:</span>
-                                <span class="font-medium text-slate-900">{{ plan.duration_days|default:"N/A" }} giorni</span>
+            <!-- Tab: Listino -->
+            <div x-show="tab === 'piani'" class="flex-1 p-6 overflow-y-auto">
+                {% if subscription_plans %}
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {% for plan in subscription_plans %}
+                    <div class="al-card al-card-flush al-interactive flex flex-col">
+                        <div class="p-6 border-b" style="border-color: var(--al-rule);">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="al-badge {% if plan.is_active %}al-badge-success{% endif %}">
+                                    <span class="dot"></span>{% if plan.is_active %}Attivo{% else %}Inattivo{% endif %}
+                                </span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Valuta:</span>
-                                <span class="font-medium text-slate-900">{{ plan.currency }}</span>
+                            <h3 class="al-h-2">{{ plan.name }}</h3>
+                            <p class="al-tag mt-2">{{ plan.plan_type }}</p>
+                            <div class="mt-4 flex items-baseline gap-1">
+                                <span class="al-display" style="font-size: 36px;">€{{ plan.price }}</span>
+                                <span class="al-tag">/ {{ plan.billing_interval|default:"mese" }}</span>
                             </div>
                         </div>
 
-                        <!-- Stats Mini -->
-                        <div class="pt-4 border-t border-slate-200 mt-auto flex justify-between items-center text-sm">
-                            <span class="text-slate-500"><b class="text-slate-800">{{ plan.clientsubscription_set.count }}</b> iscritti</span>
-                        </div>
-                    </div>
+                        <div class="p-6 flex-1" style="background: var(--al-marble-warm);">
+                            <p class="al-eyebrow mb-3" style="color: var(--al-ink-mute);">Descrizione</p>
+                            <p class="al-body line-clamp-3">{{ plan.description|truncatewords:20 }}</p>
 
-                    <!-- Actions -->
-                    <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex gap-2">
-                        <button @click="open({{ plan.id }}, '{{ plan.name|escapejs }}')"
-                                class="flex-1 text-center px-3 py-2 rounded-lg bg-accent/10 text-accent text-sm font-medium hover:bg-accent hover:text-white transition-colors">
-                            <i class="ph ph-user-plus mr-1"></i> Assegna
-                        </button>
-                        <a href="{% url 'subscription_plan_edit' plan.id %}" class="flex-1 text-center px-3 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
-                            <i class="ph ph-pencil mr-1"></i> Modifica
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <!-- Empty State -->
-            <div class="flex flex-col items-center justify-center h-80">
-                <i class="ph ph-package text-5xl text-slate-300 mb-4"></i>
-                <h3 class="text-lg font-semibold text-slate-700">Nessun piano disponibile</h3>
-                <p class="text-slate-500 mt-2 text-center">Crea il tuo primo piano di abbonamento per iniziare.</p>
-                <a href="{% url 'subscription_plan_create' %}" class="mt-6 px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors">
-                    <i class="ph ph-plus mr-2"></i> Crea Piano
-                </a>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Tab: Clienti Iscritti -->
-        <div x-show="tab === 'iscritti'" class="flex-1 p-6 overflow-y-auto bg-slate-50/30">
-            {% if subscriptions %}
-            <div class="overflow-x-auto bg-white rounded-xl border border-slate-200">
-                <table class="w-full">
-                    <thead class="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Cliente</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Piano</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Data Inizio</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Stato</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Pagamento</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for sub in subscriptions %}
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4">
-                                <div>
-                                    <p class="text-sm font-medium text-slate-900">{{ sub.client.first_name }} {{ sub.client.last_name }}</p>
-                                    <p class="text-xs text-slate-500">{{ sub.client.user.email }}</p>
+                            <div class="mt-5 pt-4 border-t space-y-2" style="border-color: var(--al-rule);">
+                                <div class="flex justify-between al-small">
+                                    <span>Durata</span>
+                                    <span class="font-mono text-ink">{{ plan.duration_days|default:"N/A" }} giorni</span>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm font-medium text-slate-900">{{ sub.subscription_plan.name }}</p>
-                                <p class="text-xs text-slate-500">€{{ sub.subscription_plan.price }}</p>
-                            </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm text-slate-700">{{ sub.start_date|date:"d/m/Y" }}</p>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {% if sub.status == 'ACTIVE' %}bg-emerald-100 text-emerald-700{% elif sub.status == 'CANCELLED' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                                <div class="flex justify-between al-small">
+                                    <span>Valuta</span>
+                                    <span class="font-mono text-ink">{{ plan.currency }}</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 mt-4 border-t flex justify-between items-center" style="border-color: var(--al-rule);">
+                                <span class="al-tag"><b class="text-ink font-mono">{{ plan.clientsubscription_set.count }}</b> iscritti</span>
+                            </div>
+                        </div>
+
+                        <div class="px-5 py-3 border-t flex gap-2" style="border-color: var(--al-rule);">
+                            <button @click="open({{ plan.id }}, '{{ plan.name|escapejs }}')" type="button" class="al-btn al-btn-bronze al-btn-sm flex-1">
+                                <i class="ph ph-user-plus text-xs"></i>
+                                <span>Assegna</span>
+                            </button>
+                            <a href="{% url 'subscription_plan_edit' plan.id %}" class="al-btn al-btn-ghost al-btn-sm flex-1">
+                                <i class="ph ph-pencil text-xs"></i>
+                                <span>Modifica</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="al-empty">
+                    <i class="ph ph-package al-empty-icon"></i>
+                    <h3>Nessun piano disponibile</h3>
+                    <p>Crea il tuo primo piano di abbonamento per iniziare.</p>
+                    <a href="{% url 'subscription_plan_create' %}" class="al-btn al-btn-bronze">
+                        <i class="ph ph-plus"></i>
+                        <span>Crea Piano</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Tab: Iscritti -->
+            <div x-show="tab === 'iscritti'" x-cloak class="flex-1 p-6 overflow-y-auto">
+                {% if subscriptions %}
+                <div class="overflow-x-auto al-card al-card-flush">
+                    <table class="al-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Piano</th>
+                                <th>Inizio</th>
+                                <th>Stato</th>
+                                <th>Pagamento</th>
+                                <th class="text-right">&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in subscriptions %}
+                            <tr>
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <div class="al-avatar al-avatar-sm al-avatar-sq">
+                                            {{ sub.client.first_name|slice:":1" }}{{ sub.client.last_name|slice:":1" }}
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-ink">{{ sub.client.first_name }} {{ sub.client.last_name }}</p>
+                                            <p class="al-tag" style="font-size:9px;">{{ sub.client.user.email }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="font-medium text-ink">{{ sub.subscription_plan.name }}</p>
+                                    <p class="al-tag" style="font-size:9px;">€{{ sub.subscription_plan.price }}</p>
+                                </td>
+                                <td><span class="al-table-num">{{ sub.start_date|date:"d/m/Y" }}</span></td>
+                                <td>
                                     {% if sub.status == 'ACTIVE' %}
-                                    <i class="ph ph-check-circle mr-1"></i>
-                                    Attivo
+                                    <span class="al-badge al-badge-success"><span class="dot"></span>Attivo</span>
                                     {% elif sub.status == 'CANCELLED' %}
-                                    <i class="ph ph-x-circle mr-1"></i>
-                                    Annullato
+                                    <span class="al-badge al-badge-danger"><span class="dot"></span>Annullato</span>
                                     {% else %}
-                                    {{ sub.status }}
+                                    <span class="al-badge">{{ sub.status }}</span>
                                     {% endif %}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {% if sub.payment_status == 'PAID' %}bg-emerald-100 text-emerald-700{% elif sub.payment_status == 'PENDING' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                </td>
+                                <td>
                                     {% if sub.payment_status == 'PAID' %}
-                                    <i class="ph ph-check-circle mr-1"></i>
-                                    Pagato
+                                    <span class="al-badge al-badge-success">Pagato</span>
                                     {% elif sub.payment_status == 'PENDING' %}
-                                    <i class="ph ph-hourglass mr-1"></i>
-                                    In Sospeso
+                                    <span class="al-badge al-badge-warn">In Sospeso</span>
                                     {% else %}
-                                    Mancato
+                                    <span class="al-badge al-badge-danger">Mancato</span>
                                     {% endif %}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <a href="{% url 'subscription_plan_detail' sub.subscription_plan.id %}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                                    Visualizza <i class="ph ph-arrow-right ml-1"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td class="text-right">
+                                    <a href="{% url 'subscription_plan_detail' sub.subscription_plan.id %}" class="al-link al-link-bronze text-[11px] uppercase tracking-widest">
+                                        Apri <i class="ph ph-arrow-right text-xs"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="al-empty">
+                    <i class="ph ph-users al-empty-icon"></i>
+                    <h3>Nessun cliente iscritto</h3>
+                    <p>I tuoi clienti appariranno qui una volta iscritti a un piano.</p>
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <!-- Empty State -->
-            <div class="flex flex-col items-center justify-center h-80">
-                <i class="ph ph-users text-5xl text-slate-300 mb-4"></i>
-                <h3 class="text-lg font-semibold text-slate-700">Nessun cliente iscritto</h3>
-                <p class="text-slate-500 mt-2 text-center">I tuoi clienti appariranno qui una volta iscritti a un piano.</p>
-            </div>
-            {% endif %}
         </div>
     </div>
-    </div> <!-- end modal wrapper -->
 </div>
 {% endblock %}

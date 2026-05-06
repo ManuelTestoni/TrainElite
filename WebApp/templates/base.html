@@ -1,256 +1,371 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="it" class="antialiased bg-slate-50">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrainElite | PT Dashboard</title>
-    <!-- Tailwind CSS (CDN per prototipazione veloce) -->
+    <title>Athlynk | {% block title %}Dashboard{% endblock %}</title>
+
+    <!-- Fonts: Athlynk (Bodoni Moda + Inter + JetBrains Mono) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+    <!-- Tailwind (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Phosphor Icons (o similari per UI pulita) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Main CSS -->
+
+    <!-- Legacy + Athlynk design system -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/athlynk.css' %}">
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { 
-                        primary: '#0F172A', /* Slate 900 */
-                        accent: '#2563EB',  /* Blue 600 */
-                        surface: '#FFFFFF',
-                        brand: '#10B981'    /* Emerald 500 */
-                    }
+                    colors: {
+                        /* Athlynk palette */
+                        ink:        '#14110d',
+                        'ink-soft': '#2a2620',
+                        'ink-mute': '#5b554a',
+                        'ink-line': '#8a8270',
+
+                        parchment:    '#f4efe4',
+                        marble:       '#ece5d6',
+                        'marble-warm':'#e7dfcb',
+                        stone:        '#d8cfba',
+                        'stone-deep': '#c4b89c',
+
+                        aegean:       '#1c4a52',
+                        'aegean-deep':'#0e2f36',
+                        'aegean-tint':'#2a6a72',
+
+                        bronze:        '#8a6a3a',
+                        'bronze-soft': '#a78554',
+                        'bronze-light':'#c8a774',
+
+                        /* Legacy aliases (do not break old templates) */
+                        primary: '#14110d',
+                        accent:  '#1c4a52',
+                        surface: '#f4efe4',
+                        brand:   '#8a6a3a',
+                    },
+                    fontFamily: {
+                        display: ['"Bodoni Moda"', 'Didot', 'Georgia', 'serif'],
+                        sans:    ['Inter', 'system-ui', 'sans-serif'],
+                        mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+                    },
+                    boxShadow: {
+                        'al-1': '0 1px 0 rgba(20,17,13,0.04)',
+                        'al-2': '0 12px 32px -16px rgba(20,17,13,0.18)',
+                        'al-3': '0 30px 80px -30px rgba(20,17,13,0.35)',
+                    },
+                    borderRadius: {
+                        'al-sm': '2px',
+                    },
                 }
             }
         }
     </script>
+    {% block extra_head %}{% endblock %}
 </head>
-<body x-data="{ sidebarOpen: false }" class="text-slate-800 h-screen overflow-hidden flex selection:bg-accent selection:text-white">
+<body x-data="{ sidebarOpen: false }" class="h-screen overflow-hidden flex text-ink">
 
-    <!-- Mobile Sidebar Overlay -->
-    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-20 bg-slate-900/50 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak></div>
+    <!-- Mobile overlay -->
+    <div x-show="sidebarOpen" x-transition.opacity x-cloak
+         class="fixed inset-0 z-20 bg-ink/60 backdrop-blur-sm lg:hidden"
+         @click="sidebarOpen = false"></div>
 
-    <!-- Sidebar -->
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-30 w-64 bg-primary text-slate-300 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto flex flex-col justify-between">
-        <div>
-            <!-- Logo -->
-            <div class="h-16 flex items-center px-6 border-b border-slate-800">
-                <i class="ph-fill ph-barbell text-2xl text-brand mr-2"></i>
-                <span class="font-bold text-xl text-white tracking-tight">TrainElite<span class="text-brand">.</span></span>
-            </div>
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+           class="al-sidebar fixed inset-y-0 left-0 z-30 w-64 flex flex-col justify-between transition-transform duration-300 ease-out lg:translate-x-0 lg:static lg:inset-auto">
 
-            <!-- Navigation -->
-            <nav class="p-4 space-y-1 overflow-y-auto">
-                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-3 mt-4">Menu Principale</div>
-                
+        <div class="flex flex-col min-h-0 flex-1">
+            <!-- Brand -->
+            <a href="{% url 'dashboard' %}" class="al-sidebar-brand">
+                <!-- Athlynk hex mark -->
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" class="shrink-0">
+                    <path d="M16 1.5 L29 9 L29 23 L16 30.5 L3 23 L3 9 Z" stroke="#c8a774" stroke-width="1.1"/>
+                    <path d="M16 7 L22 23 M16 7 L10 23 M12.5 18 H19.5" stroke="#c8a774" stroke-width="1.4"/>
+                </svg>
+                <span class="al-sidebar-brand-name">Athlynk</span>
+            </a>
+
+            <!-- Greek meander accent -->
+            <div class="al-meander al-meander-bronze mx-5 mt-3 mb-1" style="height:8px;"></div>
+
+            <!-- Nav -->
+            <nav class="overflow-y-auto py-2 flex-1">
+                <p class="al-nav-section-label">Menu</p>
+
                 {% with s=current_section %}
-                <a href="{% url 'dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'dashboard' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-squares-four text-xl mr-3 {% if s == 'dashboard' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Dashboard</span>
+
+                <a href="{% url 'dashboard' %}"
+                   class="al-nav-link {% if s == 'dashboard' %}is-active{% endif %}">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
                 </a>
+
                 {% if is_coach %}
-                <a href="{% url 'clienti_list' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'clienti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-users text-xl mr-3 {% if s == 'clienti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Clienti</span>
+
+                <a href="{% url 'clienti_list' %}"
+                   class="al-nav-link {% if s == 'clienti' %}is-active{% endif %}">
+                    <i class="ph ph-users"></i>
+                    <span>Clienti</span>
                 </a>
+
                 {% if can_manage_workouts %}
-                <a href="{% url 'allenamenti_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'allenamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-activity text-xl mr-3 {% if s == 'allenamenti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Allenamenti</span>
-                    {% if sidebar_notifications.allenamenti %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+                <a href="{% url 'allenamenti_list' %}"
+                   class="al-nav-link {% if s == 'allenamenti' %}is-active{% endif %}">
+                    <i class="ph ph-barbell"></i>
+                    <span>Allenamenti</span>
+                    {% if sidebar_notifications.allenamenti %}<span class="al-nav-dot"></span>{% endif %}
                 </a>
                 {% endif %}
+
                 {% if can_manage_nutrition %}
-                <div x-data="{ expanded: {{ s|yesno:'true,false,false' }}{% if s == 'nutrizione' %}, _forceOpen: true{% endif %} }" class="space-y-1">
-                    <button @click="expanded = !expanded" class="relative w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all group {% if s == 'nutrizione' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %}">
-                        <div class="flex items-center">
-                            <i class="ph ph-apple-logo text-xl mr-3 {% if s == 'nutrizione' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                            <span class="font-medium text-sm">Nutrizione</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            {% if sidebar_notifications.nutrizione %}<span class="w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
-                            <i class="ph ph-caret-down text-slate-500 transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
-                        </div>
+                <div x-data="{ expanded: {% if s == 'nutrizione' %}true{% else %}false{% endif %} }">
+                    <button @click="expanded = !expanded"
+                            type="button"
+                            class="al-nav-link w-full {% if s == 'nutrizione' %}is-active{% endif %}"
+                            style="justify-content: space-between;">
+                        <span class="flex items-center gap-3">
+                            <i class="ph ph-leaf"></i>
+                            <span>Nutrizione</span>
+                        </span>
+                        <span class="flex items-center gap-2">
+                            {% if sidebar_notifications.nutrizione %}<span class="w-1.5 h-1.5 rounded-full" style="background:#c8a774;"></span>{% endif %}
+                            <i class="ph ph-caret-down text-xs transition-transform" :class="expanded ? 'rotate-180' : ''" style="font-size:11px;"></i>
+                        </span>
                     </button>
-                    <div x-show="expanded" x-collapse class="pl-11 pr-3 py-1 space-y-1" {% if s == 'nutrizione' %}x-init="expanded=true"{% endif %} x-cloak>
-                        <a href="{% url 'nutrizione_piani' %}" class="block py-2 text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all">Piani Alimentari</a>
-                        <a href="{% url 'nutrizione_anamnesi' %}" class="block py-2 text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all">Prime Visite</a>
-                        <a href="{% url 'nutrizione_integratori' %}" class="block py-2 text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all">Integratori</a>
+                    <div x-show="expanded" x-collapse class="pl-12 pr-3 py-1 space-y-0.5" x-cloak>
+                        <a href="{% url 'nutrizione_piani' %}"     class="block py-1.5 text-[13px] text-parchment/55 hover:text-parchment hover:translate-x-1 transition-all">Piani Alimentari</a>
+                        <a href="{% url 'nutrizione_anamnesi' %}"  class="block py-1.5 text-[13px] text-parchment/55 hover:text-parchment hover:translate-x-1 transition-all">Prime Visite</a>
+                        <a href="{% url 'nutrizione_integratori' %}" class="block py-1.5 text-[13px] text-parchment/55 hover:text-parchment hover:translate-x-1 transition-all">Integratori</a>
                     </div>
                 </div>
                 {% endif %}
-                <a href="{% url 'agenda_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'agenda' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-calendar-blank text-xl mr-3 {% if s == 'agenda' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Agenda</span>
+
+                <a href="{% url 'agenda_dashboard' %}"
+                   class="al-nav-link {% if s == 'agenda' %}is-active{% endif %}">
+                    <i class="ph ph-calendar-blank"></i>
+                    <span>Agenda</span>
                 </a>
-                <a href="{% url 'chat_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'chat' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-chats-circle text-xl mr-3 {% if s == 'chat' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Chat</span>
-                    {% if sidebar_notifications.chat %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+
+                <a href="{% url 'chat_list' %}"
+                   class="al-nav-link {% if s == 'chat' %}is-active{% endif %}">
+                    <i class="ph ph-chats-circle"></i>
+                    <span>Chat</span>
+                    {% if sidebar_notifications.chat %}<span class="al-nav-dot"></span>{% endif %}
                 </a>
-                <a href="{% url 'check_dashboard' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'check' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-check-square-offset text-xl mr-3 {% if s == 'check' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Check Progressi</span>
-                    {% if sidebar_notifications.check %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+
+                <a href="{% url 'check_dashboard' %}"
+                   class="al-nav-link {% if s == 'check' %}is-active{% endif %}">
+                    <i class="ph ph-chart-line"></i>
+                    <span>Check Progressi</span>
+                    {% if sidebar_notifications.check %}<span class="al-nav-dot"></span>{% endif %}
                 </a>
-                <a href="{% url 'abbonamenti_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'abbonamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-credit-card text-xl mr-3 {% if s == 'abbonamenti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Abbonamenti</span>
+
+                <a href="{% url 'abbonamenti_dashboard' %}"
+                   class="al-nav-link {% if s == 'abbonamenti' %}is-active{% endif %}">
+                    <i class="ph ph-credit-card"></i>
+                    <span>Abbonamenti</span>
                 </a>
+
                 {% elif is_client %}
-                <a href="{% url 'allenamenti_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'allenamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-activity text-xl mr-3 {% if s == 'allenamenti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">I Miei Allenamenti</span>
-                    {% if sidebar_notifications.allenamenti %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+
+                <a href="{% url 'allenamenti_list' %}"
+                   class="al-nav-link {% if s == 'allenamenti' %}is-active{% endif %}">
+                    <i class="ph ph-barbell"></i>
+                    <span>I Miei Allenamenti</span>
+                    {% if sidebar_notifications.allenamenti %}<span class="al-nav-dot"></span>{% endif %}
                 </a>
-                <a href="{% url 'nutrizione_piani' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'nutrizione' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-apple-logo text-xl mr-3 {% if s == 'nutrizione' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Nutrizione</span>
-                    {% if sidebar_notifications.nutrizione %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+
+                <a href="{% url 'nutrizione_piani' %}"
+                   class="al-nav-link {% if s == 'nutrizione' %}is-active{% endif %}">
+                    <i class="ph ph-leaf"></i>
+                    <span>Nutrizione</span>
+                    {% if sidebar_notifications.nutrizione %}<span class="al-nav-dot"></span>{% endif %}
                 </a>
-                <a href="{% url 'agenda_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'agenda' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-calendar-blank text-xl mr-3 {% if s == 'agenda' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Agenda</span>
+
+                <a href="{% url 'agenda_dashboard' %}"
+                   class="al-nav-link {% if s == 'agenda' %}is-active{% endif %}">
+                    <i class="ph ph-calendar-blank"></i>
+                    <span>Agenda</span>
                 </a>
+
                 {% if has_any_professional %}
-                <a href="{% url 'chat_list' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'chat' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-chats-circle text-xl mr-3 {% if s == 'chat' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Chat</span>
-                    {% if sidebar_notifications.chat %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+                <a href="{% url 'chat_list' %}"
+                   class="al-nav-link {% if s == 'chat' %}is-active{% endif %}">
+                    <i class="ph ph-chats-circle"></i>
+                    <span>Chat</span>
+                    {% if sidebar_notifications.chat %}<span class="al-nav-dot"></span>{% endif %}
                 </a>
                 {% endif %}
-                <a href="{% url 'check_dashboard' %}" class="relative flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'check' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-check-square-offset text-xl mr-3 {% if s == 'check' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Check Progressi</span>
-                    {% if sidebar_notifications.check %}<span class="absolute top-2.5 right-3 w-2 h-2 rounded-full bg-accent ring-2 ring-slate-900"></span>{% endif %}
+
+                <a href="{% url 'check_dashboard' %}"
+                   class="al-nav-link {% if s == 'check' %}is-active{% endif %}">
+                    <i class="ph ph-chart-line"></i>
+                    <span>Check Progressi</span>
+                    {% if sidebar_notifications.check %}<span class="al-nav-dot"></span>{% endif %}
                 </a>
+
                 {% if has_any_professional %}
-                <a href="{% url 'abbonamenti_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'abbonamenti' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-credit-card text-xl mr-3 {% if s == 'abbonamenti' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Abbonamenti</span>
+                <a href="{% url 'abbonamenti_dashboard' %}"
+                   class="al-nav-link {% if s == 'abbonamenti' %}is-active{% endif %}">
+                    <i class="ph ph-credit-card"></i>
+                    <span>Abbonamenti</span>
                 </a>
-                <a href="{% url 'client_my_coach' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all {% if s == 'specialista' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %} group">
-                    <i class="ph ph-user-circle text-xl mr-3 {% if s == 'specialista' %}text-white{% else %}text-slate-400 group-hover:text-white{% endif %}"></i>
-                    <span class="font-medium text-sm">Il Mio Specialista</span>
+                <a href="{% url 'client_my_coach' %}"
+                   class="al-nav-link {% if s == 'specialista' %}is-active{% endif %}">
+                    <i class="ph ph-user-circle"></i>
+                    <span>Il Mio Specialista</span>
                 </a>
                 {% else %}
-                <a href="{% url 'check_coach_directory' %}" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white text-slate-300 group transition-all">
-                    <i class="ph ph-magnifying-glass text-xl mr-3 text-slate-400 group-hover:text-white"></i>
-                    <span class="font-medium text-sm">Trova un Coach</span>
+                <a href="{% url 'check_coach_directory' %}" class="al-nav-link">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <span>Trova un Coach</span>
                 </a>
                 {% endif %}
+
                 {% endif %}
                 {% endwith %}
             </nav>
         </div>
 
-        <!-- User Profile (Bottom Sidebar) -->
-        <div class="p-4 border-t border-slate-800">
-            <a href="{% url 'impostazioni_dashboard' %}" class="flex items-center px-3 py-2.5 rounded-lg transition-all mb-2 {% if current_section == 'impostazioni' %}bg-slate-800 text-white{% else %}hover:bg-slate-800 hover:text-white text-slate-300{% endif %}">
-                <i class="ph ph-gear text-xl mr-3 {% if current_section == 'impostazioni' %}text-white{% else %}text-slate-400{% endif %}"></i>
-                <span class="font-medium text-sm">Impostazioni</span>
+        <!-- User strip -->
+        <div class="p-3 border-t border-white/[0.06]">
+            <div class="al-meander al-meander-bronze mx-2 mb-3" style="height:8px;"></div>
+
+            <a href="{% url 'impostazioni_dashboard' %}"
+               class="al-nav-link {% if current_section == 'impostazioni' %}is-active{% endif %}">
+                <i class="ph ph-gear-six"></i>
+                <span>Impostazioni</span>
             </a>
-            <div class="flex items-center justify-between px-3 py-2 mt-2 group">
-                <div class="flex items-center">
-                    <div class="w-9 h-9 rounded-full border border-slate-700 bg-slate-800 flex items-center justify-center text-slate-300 font-bold uppercase overflow-hidden">
+
+            <div class="flex items-center justify-between px-3 py-3 mt-1">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-aegean);">
                         {{ display_name|slice:":1"|default:"U" }}
                     </div>
-                    <div class="ml-3 overflow-hidden">
-                        <p class="text-sm font-semibold text-white truncate max-w-[100px]">
-                            {{ display_name|default:"Utente" }}
-                        </p>
-                        <p class="text-xs text-slate-400 truncate">{{ user_role|default:"Guest" }}</p>
+                    <div class="overflow-hidden">
+                        <p class="text-[13px] font-medium text-parchment/95 truncate max-w-[110px]">{{ display_name|default:"Utente" }}</p>
+                        <p class="al-tag" style="color: rgba(244,239,228,0.4); font-size: 9px;">{{ user_role|default:"Guest" }}</p>
                     </div>
                 </div>
-                <a href="{% url 'logout' %}" class="text-slate-500 hover:text-red-400 p-1.5 rounded-md hover:bg-slate-800 transition-colors" title="Esci">
-                    <i class="ph-bold ph-sign-out text-lg"></i>
+                <a href="{% url 'logout' %}" class="text-parchment/30 hover:text-bronze-light p-1.5 transition-colors" title="Esci">
+                    <i class="ph ph-sign-out text-lg"></i>
                 </a>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
-        
+    <!-- ===================== MAIN AREA ===================== -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
         <!-- Topbar -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 z-10">
-            <div class="flex items-center flex-1">
-                <button @click="sidebarOpen = true" class="lg:hidden text-slate-500 hover:text-slate-700 focus:outline-none mr-4">
+        <header class="al-topbar flex items-center justify-between px-4 sm:px-8 shrink-0">
+            <div class="flex items-center flex-1 gap-4">
+                <button @click="sidebarOpen = true"
+                        type="button"
+                        class="lg:hidden text-ink-mute hover:text-ink focus:outline-none">
                     <i class="ph ph-list text-2xl"></i>
                 </button>
-                <!-- Global Search -->
-                <div class="hidden sm:flex items-center max-w-md w-full relative">
-                    <i class="ph ph-magnifying-glass absolute left-3 text-slate-400 text-lg"></i>
-                    <input type="text" placeholder="Cerca clienti, schede, check..." 
-                           class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all">
-                    <div class="absolute right-2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] font-bold text-slate-400 bg-white">⌘K</div>
+
+                <!-- Search -->
+                <div class="al-search hidden sm:block max-w-sm w-full">
+                    <i class="ph ph-magnifying-glass text-base"></i>
+                    <input type="text" placeholder="Cerca clienti, schede, check..." class="al-input">
                 </div>
             </div>
 
-            <!-- Header Actions -->
-            <div class="flex items-center space-x-3 sm:space-x-5">
+            <div class="flex items-center gap-4">
                 {% if current_user %}
+                <!-- Notification bell -->
                 <div class="relative" x-data="notificationsBell()" x-init="init()">
-                    <button @click="toggleOpen()" class="relative text-slate-500 hover:text-primary transition-colors">
-                        <i class="ph ph-bell text-2xl"></i>
+                    <button @click="toggleOpen()" type="button"
+                            class="relative text-ink-mute hover:text-ink transition-colors">
+                        <i class="ph ph-bell text-xl"></i>
                         <span x-show="unreadCount > 0"
                               x-text="unreadCount > 9 ? '9+' : unreadCount"
-                              class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center"></span>
+                              class="absolute -top-1 -right-1.5 min-w-[16px] h-4 px-1 bg-bronze text-parchment text-[9px] font-bold font-mono flex items-center justify-center"
+                              style="border: 1px solid var(--al-parchment); border-radius: 2px;"></span>
                     </button>
-                    <div x-show="open" @click.outside="open = false"
-                         class="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50" x-cloak>
-                        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                            <h3 class="text-sm font-semibold text-slate-900">Notifiche</h3>
-                            <button @click="markAllRead()" x-show="unreadCount > 0" class="text-xs text-accent hover:underline">Segna tutte</button>
+                    <div x-show="open" @click.outside="open = false" x-cloak
+                         class="absolute right-0 mt-3 w-80 z-50"
+                         style="background: var(--al-parchment); border: 1px solid var(--al-rule-strong); box-shadow: var(--al-shadow-3);">
+                        <div class="al-card-head" style="padding: 12px 16px; background: var(--al-marble);">
+                            <span class="al-tag">Notifiche</span>
+                            <button @click="markAllRead()" type="button" x-show="unreadCount > 0"
+                                    class="text-[11px] uppercase tracking-widest text-bronze hover:text-bronze-soft transition-colors font-medium">Segna tutte</button>
                         </div>
                         <div class="max-h-96 overflow-y-auto">
                             <template x-for="n in notifications" :key="n.id">
                                 <a :href="n.link_url || '#'" @click="markRead(n.id)"
-                                   :class="!n.is_read ? 'bg-blue-50/50' : ''"
-                                   class="block px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                                    <div class="flex items-start gap-2">
-                                        <div :class="getIconBg(n.type)" class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm">
+                                   :class="!n.is_read ? 'bg-marble/60' : ''"
+                                   class="block px-4 py-3 border-b border-stone/40 hover:bg-marble/40 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <div :class="getIconBg(n.type)"
+                                             class="al-avatar al-avatar-sm al-avatar-sq" style="background: var(--al-stone); color: var(--al-ink);">
                                             <i :class="getIcon(n.type)"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-slate-800 truncate" x-text="n.title"></p>
-                                            <p class="text-xs text-slate-500 truncate mt-0.5" x-text="n.body"></p>
-                                            <p class="text-[10px] text-slate-400 mt-1" x-text="formatTime(n.created_at)"></p>
+                                            <p class="text-[13px] font-medium text-ink truncate" x-text="n.title"></p>
+                                            <p class="text-xs text-ink-mute truncate mt-0.5" x-text="n.body"></p>
+                                            <p class="al-tag mt-1" x-text="formatTime(n.created_at)" style="font-size: 9px;"></p>
                                         </div>
-                                        <span x-show="!n.is_read" class="w-2 h-2 bg-accent rounded-full shrink-0 mt-2"></span>
+                                        <span x-show="!n.is_read" class="w-1.5 h-1.5 rounded-full shrink-0 mt-2" style="background: var(--al-bronze);"></span>
                                     </div>
                                 </a>
                             </template>
-                            <div x-show="notifications.length === 0" class="px-4 py-10 text-center text-sm text-slate-400">
-                                <i class="ph ph-bell-slash text-2xl"></i>
-                                <p class="mt-2">Nessuna notifica</p>
+                            <div x-show="notifications.length === 0" class="al-empty" style="padding: 32px 24px;">
+                                <i class="ph ph-bell-slash text-3xl text-ink-line mb-2 block"></i>
+                                <p class="al-tag">Nessuna notifica</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 {% endif %}
-                <div class="w-px h-6 bg-slate-200 hidden sm:block"></div>
-                {% if is_coach %}
-                {% elif is_client and not has_coach %}
-                <a href="{% url 'check_coach_directory' %}" class="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center">
-                    <i class="ph ph-magnifying-glass mr-2 text-lg"></i>
-                    Trova Coach
+
+                <div class="w-px h-5 bg-rule hidden sm:block" style="background: var(--al-rule-strong);"></div>
+
+                {% if is_client and not has_coach %}
+                <a href="{% url 'check_coach_directory' %}" class="al-btn al-btn-sm al-btn-bronze">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <span>Trova Coach</span>
                 </a>
                 {% endif %}
             </div>
         </header>
 
-        <!-- Main Scrollable Area -->
-        <main class="flex-1 overflow-y-auto w-full p-4 sm:p-8">
-            {% block content %}
-            <!-- Contenuto dinamico delle pagine -->
-            {% endblock %}
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto al-canvas">
+            <div class="al-page p-4 sm:p-8">
+                {% block content %}{% endblock %}
+            </div>
         </main>
     </div>
 
+    <!-- Reveal-on-scroll observer -->
+    <script>
+      (function () {
+        if (!('IntersectionObserver' in window)) return;
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        const watch = () => document.querySelectorAll('.al-reveal:not(.in), .al-reveal-line:not(.in)').forEach((el) => io.observe(el));
+        document.addEventListener('DOMContentLoaded', watch);
+        document.addEventListener('alpine:initialized', watch);
+        watch();
+      })();
+    </script>
+
     <script src="{% static 'js/notifications.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
