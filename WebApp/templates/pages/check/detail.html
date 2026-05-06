@@ -24,7 +24,7 @@
             const data = await res.json();
             if (data.success) {
                 this.saved = true;
-                setTimeout(() => this.saved = false, 2500);
+                setTimeout(() => { window.location.href = '/check/'; }, 1200);
             } else {
                 this.saveError = data.error || 'Errore nel salvataggio.';
             }

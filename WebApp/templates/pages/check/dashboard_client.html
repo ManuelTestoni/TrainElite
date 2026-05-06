@@ -10,6 +10,10 @@
             <p class="text-sm text-slate-500 mt-1">Tieni traccia dei tuoi progressi e visualizza lo storico delle misurazioni.</p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{% url 'check_comparator' %}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
+                <i class="ph ph-arrows-out-simple text-lg"></i> Comparatore
+            </a>
             <a href="{% url 'check_progress_charts' %}"
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
                 <i class="ph ph-chart-line text-lg"></i> Il mio andamento

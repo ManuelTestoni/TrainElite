@@ -24,6 +24,10 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{% url 'check_comparator_client' target_client.id %}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                <i class="ph ph-arrows-out-simple"></i> Comparatore
+            </a>
             <a href="{% url 'check_progress_charts_client' target_client.id %}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
                 <i class="ph ph-chart-line"></i> Andamento

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="w-full max-w-5xl mx-auto" x-data="progressCharts()" x-init="init()">
+<div class="w-full max-w-5xl mx-auto" x-data="progressCharts()">
 
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
@@ -216,28 +216,18 @@ function progressCharts() {
         updateCircChart() {
             if (!this.circChart) return;
             const keys = Object.keys(CIRC_LABELS);
-            this.circChart.data.datasets.forEach((ds, i) => {
-                const k = keys[i];
-                const active = k === this.activeCirc;
-                ds.borderColor = active ? ACCENT : MUTED;
-                ds.borderWidth = active ? 2.5 : 1;
-                ds.pointRadius = active ? 4 : 0;
-                ds.pointHoverRadius = active ? 6 : 0;
-            });
+            this.circChart.data.datasets = keys.map(k =>
+                makeDataset(CIRC_LABELS[k], _chartData.circumferences[k], k === this.activeCirc, ACCENT)
+            );
             this.circChart.update();
         },
 
         updateSkinChart() {
             if (!this.skinChart) return;
             const keys = Object.keys(SKIN_LABELS);
-            this.skinChart.data.datasets.forEach((ds, i) => {
-                const k = keys[i];
-                const active = k === this.activeSkin;
-                ds.borderColor = active ? ACCENT : MUTED;
-                ds.borderWidth = active ? 2.5 : 1;
-                ds.pointRadius = active ? 4 : 0;
-                ds.pointHoverRadius = active ? 6 : 0;
-            });
+            this.skinChart.data.datasets = keys.map(k =>
+                makeDataset(SKIN_LABELS[k], _chartData.skinfolds[k], k === this.activeSkin, ACCENT)
+            );
             this.skinChart.update();
         }
     };

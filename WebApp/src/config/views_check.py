@@ -475,6 +475,51 @@ def check_progress_charts_view(request, client_id=None):
     })
 
 
+def check_comparator_view(request, client_id=None):
+    user = get_session_user(request)
+    if not user:
+        return redirect('login')
+
+    if user.role == 'CLIENT':
+        target_client = get_session_client(request)
+        is_coach_view = False
+    elif user.role == 'COACH':
+        coach = get_session_coach(request)
+        if not coach:
+            return redirect('login')
+        if not client_id:
+            return redirect('check_dashboard')
+        try:
+            rel = CoachingRelationship.objects.select_related('client').get(coach=coach, client__id=client_id)
+            target_client = rel.client
+        except CoachingRelationship.DoesNotExist:
+            return redirect('check_dashboard')
+        is_coach_view = True
+    else:
+        return redirect('check_dashboard')
+
+    photos_qs = ProgressPhoto.objects.filter(
+        client=target_client
+    ).order_by('-captured_at').values('id', 'file_url', 'photo_type', 'captured_at')
+
+    photos_data = [
+        {
+            'id': p['id'],
+            'url': p['file_url'],
+            'photo_type': p['photo_type'],
+            'date': p['captured_at'].strftime('%d/%m/%Y'),
+        }
+        for p in photos_qs
+    ]
+
+    return render(request, 'pages/check/comparatore.html', {
+        'target_client': target_client,
+        'is_coach_view': is_coach_view,
+        'photos_json': json.dumps(photos_data),
+        'total_photos': len(photos_data),
+    })
+
+
 # ── API endpoints ─────────────────────────────────────────────────
 
 
