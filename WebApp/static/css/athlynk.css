@@ -707,9 +707,7 @@ body {
 /* ---------- Modal ---------- */
 .al-modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(20,17,13,0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: transparent;
   z-index: 50;
 }
 
@@ -721,6 +719,7 @@ body {
   max-width: 540px;
   width: 100%;
   margin: auto;
+  z-index: 51;
 }
 
 .al-modal-panel::before {

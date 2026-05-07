@@ -120,7 +120,7 @@
 
   <!-- Assign Modal -->
   <div x-show="assignModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="assignModal=false"></div>
+    <div class="al-modal-backdrop" @click="assignModal=false"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10">
       <h3 class="font-bold text-slate-900 text-lg mb-1">Assegna scheda</h3>
       <p class="text-sm text-slate-500 mb-4" x-text="assignSheetName"></p>
@@ -159,7 +159,7 @@
 
   <!-- Delete Modal -->
   <div x-show="deleteModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="deleteModal=false"></div>
+    <div class="al-modal-backdrop" @click="deleteModal=false"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10 text-center">
       <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
         <i class="ph ph-trash text-2xl text-red-500"></i>

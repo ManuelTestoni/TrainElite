@@ -3,12 +3,13 @@
 {% block title %}{{ partner_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col"
+<div class="-m-4 sm:-m-8 flex flex-col"
+     style="height: calc(100vh - 64px); min-height: 0;"
      x-data='chatRoom({{ conversation.id }}, {{ current_user_id }}, {{ has_older|yesno:"true,false" }}, {{ oldest_id }})'
      x-init="init()">
 
   <!-- Header -->
-  <div class="al-card al-card-flush flex items-center gap-3 px-5 py-3" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+  <div class="al-card al-card-flush flex items-center gap-3 px-4 sm:px-5 py-3 shrink-0" style="border-radius: 0;">
     <a href="{% url 'chat_list' %}" class="al-btn-icon al-btn al-btn-ghost">
       <i class="ph ph-arrow-left"></i>
     </a>
@@ -38,8 +39,8 @@
   </div>
 
   <!-- Messages -->
-  <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3" x-ref="messagesEl"
-       style="background: var(--al-marble); border-left: 1px solid var(--al-rule); border-right: 1px solid var(--al-rule);">
+  <div class="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3" x-ref="messagesEl"
+       style="background: var(--al-marble);">
 
     <!-- Load older -->
     <div x-show="hasOlder" class="flex justify-center pb-2">
@@ -111,7 +112,7 @@
   </div>
 
   <!-- Input bar -->
-  <div class="al-card al-card-flush px-4 py-3" style="border-top-left-radius: 0; border-top-right-radius: 0;">
+  <div class="al-card al-card-flush px-4 sm:px-5 py-3 shrink-0" style="border-radius: 0;">
     <form @submit.prevent="sendMessage()" class="flex items-end gap-2">
       <label class="cursor-pointer p-2 text-ink-mute hover:text-bronze transition-colors shrink-0">
         <i class="ph ph-paperclip text-xl"></i>
